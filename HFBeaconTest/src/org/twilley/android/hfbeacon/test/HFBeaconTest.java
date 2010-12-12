@@ -18,8 +18,8 @@ public class HFBeaconTest extends ActivityInstrumentationTestCase2<HFBeacon> {
     protected void setUp() throws Exception {
         super.setUp();
         mActivity = this.getActivity();
-        mView = (TextView) mActivity.findViewById(org.twilley.android.hfbeacon.R.id.textview);
-        resourceString = mActivity.getString(org.twilley.android.hfbeacon.R.string.hello);
+        mView = (TextView) mActivity.findViewById(org.twilley.android.hfbeacon.R.id.bandLabel);
+        resourceString = mActivity.getString(org.twilley.android.hfbeacon.R.string.bandLabel);
     }
     
     public void testPreconditions() {

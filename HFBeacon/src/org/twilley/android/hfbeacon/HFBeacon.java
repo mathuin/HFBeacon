@@ -29,10 +29,21 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+// Change list here:
+// TODO: add local offset feature
+// TODO: add multiple screen size support
+// TODO: add degree-minute/degree-minute-second to preferences
+// TODO: default to fixed (i.e., single location sample) versus mobile
 public class HFBeacon extends Activity {
 	private static final String BAND = "band";
 	private static final String TAG = "HFBeacon";
-	private static final int TEN_SECONDS_IN_MILLIS = 10000;
+	// time values
+	private static final int TEN_SECONDS_IN_MILLIS = 1000 * 10;
+	private static final int ONE_MINUTE_IN_MILLIS = 1000 * 60 * 2;
+	private static final int TWO_MINUTES_IN_MILLIS = 1000 * 60 * 2;
+	// distance values
+	private static final int HALF_MINUTE_IN_METERS = 15 * 60;
+	// sigh
 	private static final int MENU_INFO = 0;
 	private static final String[] field = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R" };
 	private static final String[] digit = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -50,13 +61,81 @@ public class HFBeacon extends Activity {
 	private LocationManager locmanager = null;
 	private Criteria criteria = null;
 	private String provider = null;
+	private Location currentBestLocation = null;
 
+	/* from http://developer.android.com/guide/topics/location/obtaining-user-location.html */
+	
+	/** Determines whether one Location reading is better than the current Location fix
+	  * @param location  The new Location that you want to evaluate
+	  * @param currentBestLocation  The current Location fix, to which you want to compare the new one
+	  */
+	protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+		if (logging == true)
+			Log.v(TAG, "entered isBetterLocation");
+
+		if (currentBestLocation == null) {
+	        // A new location is always better than no location
+	        return true;
+	    }
+
+	    // Check whether the new location fix is newer or older
+	    long timeDelta = location.getTime() - currentBestLocation.getTime();
+	    boolean isSignificantlyNewer = timeDelta > TWO_MINUTES_IN_MILLIS;
+	    boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES_IN_MILLIS;
+	    boolean isNewer = timeDelta > 0;
+
+	    // If it's been more than two minutes since the current location, use the new location
+	    // because the user has likely moved
+	    if (isSignificantlyNewer) {
+	        return true;
+	    // If the new location is more than two minutes older, it must be worse
+	    } else if (isSignificantlyOlder) {
+	        return false;
+	    }
+
+	    // Check whether the new location fix is more or less accurate
+	    int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+	    boolean isLessAccurate = accuracyDelta > 0;
+	    boolean isMoreAccurate = accuracyDelta < 0;
+	    boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+
+	    // Check if the old and new location are from the same provider
+	    boolean isFromSameProvider = isSameProvider(location.getProvider(),
+	            currentBestLocation.getProvider());
+
+	    // Determine location quality using a combination of timeliness and accuracy
+	    if (isMoreAccurate) {
+	        return true;
+	    } else if (isNewer && !isLessAccurate) {
+	        return true;
+	    } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+	        return true;
+	    }
+	    return false;
+	}
+
+	/** Checks whether two providers are the same */
+	private boolean isSameProvider(String provider1, String provider2) {
+		if (logging == true)
+			Log.v(TAG, "entered isSameProvider");
+	    if (provider1 == null) {
+	      return provider2 == null;
+	    }
+	    return provider1.equals(provider2);
+	}
+	
+	// WHEE
 	private final LocationListener loclistener = new LocationListener() {
 		@Override
 		public void onLocationChanged(Location location) {
 			if (logging == true)
 				Log.v(TAG, "entered onLocationChanged");
-			updateLocation(location);
+			if (isBetterLocation(location, currentBestLocation)) {
+				if (logging == true)
+					Log.v(TAG, "new location is better than current best location");
+				currentBestLocation = location;
+				updateLocation(location);
+			}
 		}
 
 		@Override
@@ -87,12 +166,15 @@ public class HFBeacon extends Activity {
 				getBestProvider();
 		}
 	};
+
+	// TODO: http://code.google.com/p/android/issues/detail?id=7849 <-- does this affect me?
 	
 	/** Gets the current best location service provider */
 	private void getBestProvider() {
 		if (logging == true)
 			Log.v(TAG, "entered getBestProvider");
 		
+		// TODO: move manager and criteria elsewhere to some other function? 
 		// manager
 		if (locmanager == null)
 			locmanager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -122,6 +204,7 @@ public class HFBeacon extends Activity {
 				Log.v(TAG, "entered run");
 
 			// calculate next event
+			// TODO: apply local offset here
 			long now = System.currentTimeMillis();
 			long next = ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS;
 
@@ -261,6 +344,7 @@ public class HFBeacon extends Activity {
 
 		// check the bundle for stored values
 		// if the bundle is empty, check preferences
+		// TODO: add DM/DMS display to preferences
 		if (savedInstanceState != null) {
 			band = savedInstanceState.getInt(BAND);
 		} else {
@@ -308,11 +392,9 @@ public class HFBeacon extends Activity {
 		if (logging == true) 
 			Log.v(TAG, "entered onStart");
 
-		// set up provider, exit if null
+		// provider
 		if (provider == null)
 			getBestProvider();
-		if (provider == null)
-			return;
 		
 		// location
 		Location location = new Location(provider);
@@ -356,10 +438,23 @@ public class HFBeacon extends Activity {
 		long next = ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS;
 
 		// start the location listener
+
+		// Speaking of which, how often should I be getting location updates?
+		// Wikipedia says no two points in the same grid square can be further
+		// apart than 12km.  If I'm displaying in degrees-minutes, I want to get
+		// updates at the half-minute level, or 900m.  Displaying in
+		// degrees-minutes-seconds would require half-second updates which is
+		// 15m.  I think I'll stick to degrees-minutes at first and add
+		// degrees-minutes-seconds with a warning of battery usage.		
 		if (provider == null)
 			getBestProvider();
 		else
-			locmanager.requestLocationUpdates(provider, 300000, 1000, loclistener);
+			// TODO: fix the magic values here
+			// first number is minTime in milliseconds
+			// documentation recommends against values under 60000 -- I was using FIVE_MINUTES
+			// second number is minDistance in meters 
+			// the two values for this are 900 and 15 depending on whether DM or DMS is used for display
+			locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, HALF_MINUTE_IN_METERS, loclistener);
 
 		// configure handler
 		handler = new Handler();
@@ -375,6 +470,7 @@ public class HFBeacon extends Activity {
 			Log.v(TAG, "entered onPause");
 		
 		// store band in preferences
+		// TODO: add DM/DMS display to preferences
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putInt(BAND, band);
 		editor.commit();
