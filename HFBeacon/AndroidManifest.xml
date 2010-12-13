@@ -3,7 +3,7 @@
       package="org.twilley.android.hfbeacon"
       android:versionCode="20" android:versionName="2.0">
     <application android:icon="@drawable/icon" android:label="@string/app_name">
-        <activity android:name=".HFBeacon"
+        <activity android:name=".HFBeaconActivity"
                   android:label="@string/app_name"
                   android:theme="@style/hfbeaconTheme">
             <intent-filter>
