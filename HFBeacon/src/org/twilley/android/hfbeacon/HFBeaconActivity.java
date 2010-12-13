@@ -34,9 +34,9 @@ import android.widget.TextView;
 // TODO: add multiple screen size support
 // TODO: add degree-minute/degree-minute-second to preferences
 // TODO: default to fixed (i.e., single location sample) versus mobile
-public class HFBeacon extends Activity {
+public class HFBeaconActivity extends Activity {
 	private static final String BAND = "band";
-	private static final String TAG = "HFBeacon";
+	private static final String TAG = "HFBeaconActivity";
 	// time values
 	private static final int TEN_SECONDS_IN_MILLIS = 1000 * 10;
 	private static final int ONE_MINUTE_IN_MILLIS = 1000 * 60 * 2;
