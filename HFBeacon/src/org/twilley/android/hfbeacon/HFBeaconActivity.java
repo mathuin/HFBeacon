@@ -1,7 +1,5 @@
 package org.twilley.android.hfbeacon;
 
-import java.util.Calendar;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -21,7 +19,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -42,8 +39,6 @@ import android.widget.TextView;
 public class HFBeaconActivity extends Activity {
 	private static final String TAG = "HFBeaconActivity";
 	private static final String BAND = "band";
-	// time values
-	private static final int TEN_SECONDS_IN_MILLIS = 1000 * 10;
 	private static final int ONE_MINUTE_IN_MILLIS = 1000 * 60 * 2;
 	private static final int TWO_MINUTES_IN_MILLIS = 1000 * 60 * 2;
 	// distance values
@@ -53,7 +48,6 @@ public class HFBeaconActivity extends Activity {
 	private static boolean logging = true;
 	private SharedPreferences app_preferences;
 	private int band;
-	private int beacon;
 	private int numBeacons;
 	private int pastBeacon;
 	private int presentBeacon;
@@ -64,7 +58,6 @@ public class HFBeaconActivity extends Activity {
 	private CharSequence[] longitudes;
 	private CharSequence[] bearings;
 	private CharSequence[] ranges;
-	private Handler handler;
 	private LocationManager locmanager = null;
 	private Criteria criteria = null;
 	private String provider = null;
@@ -73,10 +66,24 @@ public class HFBeaconActivity extends Activity {
 	private String GridSquare = "---";
 	private String ReadableLatitude = "---";
 	private String ReadableLongitude = "---";
-	private Calendar currentcal;
 	private IntentFilter mIntentFilter;
 	private HFBeaconService mBoundService;
 	private boolean mIsBound;
+	private TextView maidenheadValue;
+	private TextView latitudeValue;
+	private TextView longitudeValue;
+	private TextView pastBearing;
+	private TextView pastRange;
+	private TextView presentBearing;
+	private TextView presentRange;
+	private TextView futureRange;
+	private TextView futureBearing;
+	private TextView pastCallsign;
+	private TextView pastRegion;
+	private TextView presentCallsign;
+	private TextView presentRegion;
+	private TextView futureCallsign;
+	private TextView futureRegion;
 
 	/* from http://developer.android.com/guide/topics/location/obtaining-user-location.html */
 	
@@ -158,7 +165,7 @@ public class HFBeaconActivity extends Activity {
 				ReadableLongitude = readableLongitude(location);
 
 				// calculate range/bearing
-				for (int i = 0; i < callsigns.length; i++) {
+				for (int i = 0; i < numBeacons; i++) {
 					Location.distanceBetween(location.getLatitude(), location.getLongitude(), Location.convert(latitudes[i].toString()), Location.convert(longitudes[i].toString()), results);
 					ranges[i] = "" + (int) (results[0] / 1000);
 					int rawBearing = (360 + (int) results[1]) % 360;
@@ -247,17 +254,16 @@ public class HFBeaconActivity extends Activity {
 				
 				// what beacons are they
 				int beacons[] = extras.getIntArray(HFBeaconService.CONTENTS);
-				int pastBeacon = beacons[0]; 
-				int presentBeacon = beacons[1]; 
-				int futureBeacon = beacons[2]; 
+				pastBeacon = beacons[0]; 
+				presentBeacon = beacons[1]; 
+				futureBeacon = beacons[2]; 
 				if (logging == true)
 					Log.d(TAG, "beacons = " + pastBeacon + ", " + presentBeacon + ", " + futureBeacon);
 
 				// set the textviews and stuff for band and beacons
 				if (logging == true)
 					Log.d(TAG, "running setBeacons from onReceive");
-				// TODO: actually set beacons from here!
-				//setBeacons();
+				setBeacons();
 			} else {
 		    	if (logging == true)
 		    		Log.d(TAG, "received unknown intent: " + action);
@@ -265,36 +271,6 @@ public class HFBeaconActivity extends Activity {
 	    }
 	};
 
-	/** Runs every ten seconds updating beacons */
-	private final Runnable updateBeacons = new Runnable() {
-		public void run() {
-			if (logging == true)
-				Log.v(TAG, "entered run");
-
-			// calculate next event
-			// TODO: apply local offset here!
-			long now = System.currentTimeMillis();
-			long next = ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS;
-
-			// set the current band (and the beacons!)
-			currentcal = Calendar.getInstance();
-			beacon = (((currentcal.get(Calendar.MINUTE) % 3) * 60 + currentcal.get(Calendar.SECOND)) / 10) - band;
-			pastBeacon = (numBeacons + beacon - 1) % numBeacons;
-			presentBeacon = (numBeacons + beacon) % numBeacons;
-			futureBeacon = (numBeacons + beacon + 1) % numBeacons;
-			if (logging == true) 
-				Log.d(TAG, "beacons = " + pastBeacon + ", " + presentBeacon + ", " + futureBeacon);
-
-			// set the textviews and stuff for band and beacons
-			if (logging == true)
-				Log.d(TAG, "running setBeacons from updateBeacons");
-			setBeacons();
-			
-			// reset handler for next event
-			handler.removeCallbacks(this);
-			handler.postDelayed(this, next - System.currentTimeMillis());
-		}
-	};
 
 	/** Converts location into Maidenhead grid square as described in http://en.wikipedia.org/wiki/Maidenhead_Locator_System */
 	private String gridSquare(Location location) {
@@ -352,27 +328,18 @@ public class HFBeaconActivity extends Activity {
 			Log.v(TAG, "entered updateLocation");
 		
 		// calculate Maidenhead grid square and store in textview
-		TextView maidenheadValue = (TextView) this.findViewById(R.id.maidenheadValue);
 		maidenheadValue.setText(GridSquare);
 
 		// store location in textview
-		TextView latitudeValue = (TextView) this.findViewById(R.id.latitudeValue);
 		latitudeValue.setText(ReadableLatitude);
-		TextView longitudeValue = (TextView) this.findViewById(R.id.longitudeValue);
 		longitudeValue.setText(ReadableLongitude);
 		
 		// update beacon ranges and bearings
-		TextView pastBearing = (TextView) this.findViewById(R.id.pastBearing);
 		pastBearing.setText(bearings[pastBeacon]);
-		TextView pastRange = (TextView) this.findViewById(R.id.pastRange);
 		pastRange.setText(ranges[pastBeacon]);
-		TextView presentBearing = (TextView) this.findViewById(R.id.presentBearing);
 		presentBearing.setText(bearings[presentBeacon]);
-		TextView presentRange = (TextView) this.findViewById(R.id.presentRange);
 		presentRange.setText(ranges[presentBeacon]);
-		TextView futureBearing = (TextView) this.findViewById(R.id.futureBearing);
 		futureBearing.setText(bearings[futureBeacon]);
-		TextView futureRange = (TextView) this.findViewById(R.id.futureRange);
 		futureRange.setText(ranges[futureBeacon]);		
 	}
 
@@ -380,31 +347,19 @@ public class HFBeaconActivity extends Activity {
 	private void setBeacons() {
 		if (logging == true) 
 			Log.v(TAG, "entered setBeacons");
-
+		
 		// display past, present and future values
-		TextView pastCallsign = (TextView) this.findViewById(R.id.pastCallsign);
 		pastCallsign.setText(callsigns[pastBeacon]);
-		TextView pastRegion = (TextView) this.findViewById(R.id.pastRegion);
 		pastRegion.setText(regions[pastBeacon]);
-		TextView pastBearing = (TextView) this.findViewById(R.id.pastBearing);
 		pastBearing.setText(bearings[pastBeacon]);
-		TextView pastRange = (TextView) this.findViewById(R.id.pastRange);
 		pastRange.setText(ranges[pastBeacon]);
-		TextView presentCallsign = (TextView) this.findViewById(R.id.presentCallsign);
 		presentCallsign.setText(callsigns[presentBeacon]);
-		TextView presentRegion = (TextView) this.findViewById(R.id.presentRegion);
 		presentRegion.setText(regions[presentBeacon]);
-		TextView presentBearing = (TextView) this.findViewById(R.id.presentBearing);
 		presentBearing.setText(bearings[presentBeacon]);
-		TextView presentRange = (TextView) this.findViewById(R.id.presentRange);
 		presentRange.setText(ranges[presentBeacon]);
-		TextView futureCallsign = (TextView) this.findViewById(R.id.futureCallsign);
 		futureCallsign.setText(callsigns[futureBeacon]);
-		TextView futureRegion = (TextView) this.findViewById(R.id.futureRegion);
 		futureRegion.setText(regions[futureBeacon]);
-		TextView futureBearing = (TextView) this.findViewById(R.id.futureBearing);
 		futureBearing.setText(bearings[futureBeacon]);
-		TextView futureRange = (TextView) this.findViewById(R.id.futureRange);
 		futureRange.setText(ranges[futureBeacon]);
 	}
 
@@ -418,9 +373,6 @@ public class HFBeaconActivity extends Activity {
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
 	        mBoundService = ((HFBeaconService.HFBeaconBinder)service).getService();
-
-	        // Tell the user about this for our demo.
-	        // Toast.makeText(Binding.this, R.string.local_service_connected, Toast.LENGTH_SHORT).show();
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
@@ -431,7 +383,6 @@ public class HFBeaconActivity extends Activity {
 	        // Because it is running in our same process, we should never
 	        // see this happen.
 	        mBoundService = null;
-	        // Toast.makeText(HFBeaconActivity.this, R.string.local_service_disconnected, Toast.LENGTH_SHORT).show();
 	    }
 	};
 
@@ -442,7 +393,6 @@ public class HFBeaconActivity extends Activity {
 	    // class name because we want a specific service implementation that
 	    // we know will be running in our own process (and thus won't be
 	    // supporting component replacement by other applications).
-		//startService(new Intent(HFBeaconActivity.this, HFBeaconService.class));
 	    bindService(new Intent(HFBeaconActivity.this, HFBeaconService.class), mConnection, Context.BIND_AUTO_CREATE);
 	    mIsBound = true;
 	}
@@ -488,6 +438,24 @@ public class HFBeaconActivity extends Activity {
 		bearings = new CharSequence[numBeacons];
 		ranges = new CharSequence[numBeacons];
 
+		// define the textviews
+		maidenheadValue = (TextView) this.findViewById(R.id.maidenheadValue);
+		latitudeValue = (TextView) this.findViewById(R.id.latitudeValue);
+		longitudeValue = (TextView) this.findViewById(R.id.longitudeValue);
+		pastCallsign = (TextView) this.findViewById(R.id.pastCallsign);
+		pastRegion = (TextView) this.findViewById(R.id.pastRegion);
+		pastBearing = (TextView) this.findViewById(R.id.pastBearing);
+		pastRange = (TextView) this.findViewById(R.id.pastRange);
+		presentCallsign = (TextView) this.findViewById(R.id.presentCallsign);
+		presentRegion = (TextView) this.findViewById(R.id.presentRegion);
+		presentBearing = (TextView) this.findViewById(R.id.presentBearing);
+		presentRange = (TextView) this.findViewById(R.id.presentRange);
+		futureCallsign = (TextView) this.findViewById(R.id.futureCallsign);
+		futureRegion = (TextView) this.findViewById(R.id.futureRegion);
+		futureBearing = (TextView) this.findViewById(R.id.futureBearing);
+		futureRange = (TextView) this.findViewById(R.id.futureRange);
+
+		
 		// assemble the spinner
 		Spinner spinner = (Spinner) this.findViewById(R.id.bandSpinner);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.bandArray, android.R.layout.simple_spinner_item);
@@ -544,16 +512,6 @@ public class HFBeaconActivity extends Activity {
 		if (logging == true)
 			Log.d(TAG, "binding service");
 	    doBindService();
-
-	    // update location with new values
-		if (logging == true)
-			Log.d(TAG, "calling updateLocation from onStart");
-		//updateLocation(location);
-
-		// set the current band (and the beacons!)
-		if (logging == true) 
-			Log.d(TAG, "running setBeacons from onStart");
-		//setBeacons();
 	}
 
 	/** Called after your activity has been stopped, prior to it being started again. */
@@ -581,27 +539,12 @@ public class HFBeaconActivity extends Activity {
 		// 15m.  I think I'll stick to degrees-minutes at first and add
 		// degrees-minutes-seconds with a warning of battery usage.	
 		
-		// TODO: fix the magic values here
-		// first number is minTime in milliseconds
-		// documentation recommends against values under 60000 -- I was using FIVE_MINUTES
-		// second number is minDistance in meters 
-		// the two values for this are 900 and 15 depending on whether DM or DMS is used for display
 		locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, HALF_MINUTE_IN_METERS, loclistener);
-
-		// calculate next event
-		// TODO: add local offset here too
-		long now = System.currentTimeMillis();
-		long next = ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS;
 
 		// register receiver
 		if (logging == true)
 			Log.d(TAG, "registering receiver");
 		registerReceiver(mIntentReceiver, mIntentFilter, null, null);
-		
-		// configure handler
-		// handler = new Handler();
-		// handler.removeCallbacks(updateBeacons);
-		// handler.postDelayed(updateBeacons, next - System.currentTimeMillis());
 	}
 
 	/** Called when the system is about to start resuming a previous activity. */
@@ -621,7 +564,6 @@ public class HFBeaconActivity extends Activity {
 		unregisterReceiver(mIntentReceiver);
 		
 		// kill update events
-		//handler.removeCallbacks(updateBeacons);
 		locmanager.removeUpdates(loclistener);
 	}
 

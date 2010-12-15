@@ -3,7 +3,7 @@ HFBeacon 2.0 notes
 0.  Add tests for all existing features.
 	Yes, even the ones that are to be disabled!
 
-1.  Convert timer thread to a service.
+1.  Convert timer thread to a service - DONE!
     Next I need to change the timer into a service.  The service should send a broadcast message every 10s.
     The main application needs to be changed to listen for the timer service's broadcast message.
     The service needs to tell the app which beacon is currently broadcasting on 14.100.
@@ -38,3 +38,4 @@ HFBeacon 2.0 notes
 7.  Audio files for specific beacons.
 	Perhaps have a button to play the specific beacon's transmission?
 	Perhaps have a flag to play the beacon exactly when it should be received for fine-tuning offset?
+
