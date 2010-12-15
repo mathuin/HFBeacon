@@ -9,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
@@ -20,7 +19,8 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.os.Parcel;
+import android.os.RemoteException;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
@@ -46,8 +46,10 @@ public class HFBeaconActivity extends Activity {
 	// sigh
 	private static final int MENU_INFO = 0;
 	private static boolean logging = true;
-	private SharedPreferences app_preferences;
 	private int band;
+	private int offset = +12000; // positive values are when phone is faster than reality
+	// for 2000, when phone clock says 17:12:42, real time is 17:12:40
+	// for -2000, when phone clock says 17:12:38, real time is 17:12:40
 	private int numBeacons;
 	private int pastBeacon;
 	private int presentBeacon;
@@ -270,8 +272,7 @@ public class HFBeaconActivity extends Activity {
 			}
 	    }
 	};
-
-
+	
 	/** Converts location into Maidenhead grid square as described in http://en.wikipedia.org/wiki/Maidenhead_Locator_System */
 	private String gridSquare(Location location) {
 		if (logging == true)
@@ -373,7 +374,21 @@ public class HFBeaconActivity extends Activity {
 	        // service that we know is running in our own process, we can
 	        // cast its IBinder to a concrete class and directly access it.
 	        mBoundService = ((HFBeaconService.HFBeaconBinder)service).getService();
-	    }
+
+	        // now set the offset value!
+	        Bundle offsetValues = new Bundle();
+	        offsetValues.putInt(HFBeaconService.HFBeaconBinder.VALUEKEY, offset);
+	        Parcel offsetData = Parcel.obtain();
+	        offsetData.writeBundle(offsetValues);
+	        try {
+	        	if (logging == true)
+	        		Log.d(TAG, "sending offset transact request to service");
+				mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETOFFSET, offsetData, null, 0);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
 	    public void onServiceDisconnected(ComponentName className) {
 			if (logging == true)
@@ -416,18 +431,6 @@ public class HFBeaconActivity extends Activity {
 		if (logging == true) 
 			Log.v(TAG, "entered onCreate");
 
-		// open preferences
-		app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-		// check the bundle for stored values
-		// if the bundle is empty, check preferences
-		// TODO: add DM/DMS display to preferences
-		if (savedInstanceState != null) {
-			band = savedInstanceState.getInt(BAND);
-		} else {
-			band = app_preferences.getInt(BAND, 0);
-		}
-
 		// import resources
 		Resources res = getResources();
 		callsigns = res.getTextArray(R.array.callsign);
@@ -468,11 +471,24 @@ public class HFBeaconActivity extends Activity {
 				if (logging == true) 
 					Log.v(TAG, "entering onItemSelected");
 				
-				// spinner is arg0
-				band = arg0.getSelectedItemPosition();
-				if (logging == true) 
-					Log.d(TAG, "running setBeacons from onItemSelected");
-				setBeacons();
+		        // now set the band value!
+		        Bundle bandValues = new Bundle();
+		        bandValues.putInt(HFBeaconService.HFBeaconBinder.VALUEKEY, arg0.getSelectedItemPosition());
+		        Parcel bandData = Parcel.obtain();
+		        bandData.writeBundle(bandValues);
+	        	if (mBoundService == null) {
+	        		if (logging == true)
+	        			Log.d(TAG, "mBoundService is null, service must have disconnected, possibly orientation");
+	        	} else {
+	        		try {
+	        			if (logging == true)
+	        				Log.d(TAG, "sending band transact request to service");
+	        			mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETBAND, bandData, null, 0);
+	        		} catch (RemoteException e) {
+	        			// TODO Auto-generated catch block
+	        			e.printStackTrace();
+	        		}
+	        	}
 			}
 
 			@Override
@@ -556,9 +572,9 @@ public class HFBeaconActivity extends Activity {
 		
 		// store band in preferences
 		// TODO: add DM/DMS display to preferences
-		SharedPreferences.Editor editor = app_preferences.edit();
-		editor.putInt(BAND, band);
-		editor.commit();
+		// SharedPreferences.Editor editor = app_preferences.edit();
+		// editor.putInt(BAND, band);
+		// editor.commit();
 		
 		// deregister receiver
 		unregisterReceiver(mIntentReceiver);
