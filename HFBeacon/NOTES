@@ -4,38 +4,41 @@ HFBeacon 2.0 notes
 	Yes, even the ones that are to be disabled!
 
 1.  Convert timer thread to a service - DONE!
-    Next I need to change the timer into a service.  The service should send a broadcast message every 10s.
-    The main application needs to be changed to listen for the timer service's broadcast message.
-    The service needs to tell the app which beacon is currently broadcasting on 14.100.
-    The app will have to make the band-specific adjustments.
+	The handler has been moved to a service.  The service accepts transactions from the activity to
+	change the band and offset.  The service sends broadcasts to the activity containing the beacons
+	to be displayed.
     
-2.  Implement local offset.
-    I already made a note in updateBeacons where the offset should be applied.
-    Initially, the offset will come from a text field in the preferences or something.
-	The service needs to be initialized with the offset.
+2.  Implement local offset - partly done.
+	The service accepts offset transactions from the activity.
+	The activity needs to offer a menu page for setting the offset.
 	
 3.  Implement multiple sources for local offset.
-	All methods get added to the preferences and settings.
-	When offset changes, service needs to be notified.
-	Perhaps the service should be in charge of determining offset when not manual?
+	The service currently stores the offset in the preferences.
+	It will need to store the offset and type when multiple sources are supported.
 	
 4.  Degree-minute versus degree-minute-second.
 	The position displayed needs to be cleaned up.
 	The selection of DM versus DMS needs to be in the preferences.
 	Perhaps the location listener should change based on the DM/DMS setting?
+	If so, use HALF_MINUTE_IN_METERS (900) and HALF_SECOND_IN_METERS (15).
 	Consider warning about power usage with DMS level.
+	DEFERRED - for now, just setting it to DMS but Readable functions will support both.
 	
-5.  Fixed versus mobile.
+
+5.  Internationalization.
+	Fake it for Spanish, French, and German.  Ask for updates.
+	
+6.  Fixed versus mobile.
 	Exit after a single location detected.
 	Notify users to hit home then re-enter the app when their location changes.
 	Perhaps add a preferences checkbox for mobile versus fixed and default fixed?
 	
-6.  Beacon-specific view.
+7.  Beacon-specific view.
 	Make a drop-down listing all the beacons.
 	When a beacon is selected, show the standard info plus seconds until beacon transmits on selected band.
 	Allow band to be changed in this view, and make it a global change.
 
-7.  Audio files for specific beacons.
+8.  Audio files for specific beacons.
 	Perhaps have a button to play the specific beacon's transmission?
 	Perhaps have a flag to play the beacon exactly when it should be received for fine-tuning offset?
 

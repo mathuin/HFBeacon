@@ -31,21 +31,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-// Change list here:
-// TODO: add local offset feature
-// TODO: add multiple screen size support
-// TODO: add degree-minute/degree-minute-second to preferences
-// TODO: default to fixed (i.e., single location sample) versus mobile
 public class HFBeaconActivity extends Activity {
 	private static final String TAG = "HFBeaconActivity";
-	private static final String BAND = "band";
+	// time values
 	private static final int ONE_MINUTE_IN_MILLIS = 1000 * 60 * 2;
 	private static final int TWO_MINUTES_IN_MILLIS = 1000 * 60 * 2;
 	// distance values
-	private static final int HALF_MINUTE_IN_METERS = 15 * 60;
+	private static final int HALF_SECOND_IN_METERS = 15 * 60;
+	private static final int HALF_MINUTE_IN_METERS = 900;
 	// sigh
 	private static final int MENU_INFO = 0;
-	private static boolean logging = true;
 	private int band;
 	private int offset = +12000; // positive values are when phone is faster than reality
 	// for 2000, when phone clock says 17:12:42, real time is 17:12:40
@@ -68,7 +63,7 @@ public class HFBeaconActivity extends Activity {
 	private String GridSquare = "---";
 	private String ReadableLatitude = "---";
 	private String ReadableLongitude = "---";
-	private IntentFilter mIntentFilter;
+	private boolean doDMS = true;
 	private HFBeaconService mBoundService;
 	private boolean mIsBound;
 	private TextView maidenheadValue;
@@ -94,8 +89,7 @@ public class HFBeaconActivity extends Activity {
 	  * @param currentBestLocation  The current Location fix, to which you want to compare the new one
 	  */
 	protected boolean isBetterLocation(Location location, Location currentBestLocation) {
-		if (logging == true)
-			Log.v(TAG, "entered isBetterLocation");
+		Log.v(TAG, "entered isBetterLocation");
 
 		if (currentBestLocation == null) {
 	        // A new location is always better than no location
@@ -140,8 +134,7 @@ public class HFBeaconActivity extends Activity {
 
 	/** Checks whether two providers are the same */
 	private boolean isSameProvider(String provider1, String provider2) {
-		if (logging == true)
-			Log.v(TAG, "entered isSameProvider");
+		Log.v(TAG, "entered isSameProvider");
 	    if (provider1 == null) {
 	      return provider2 == null;
 	    }
@@ -154,11 +147,9 @@ public class HFBeaconActivity extends Activity {
 		public void onLocationChanged(Location location) {
 			float[] results = new float[2];
 
-			if (logging == true)
-				Log.v(TAG, "entered onLocationChanged");
+			Log.v(TAG, "entered onLocationChanged");
 			if (isBetterLocation(location, currentBestLocation)) {
-				if (logging == true)
-					Log.d(TAG, "new location is better than current best location");
+				Log.i(TAG, "new location is better than current best location");
 				currentBestLocation = location;
 				
 				// update variables
@@ -173,16 +164,14 @@ public class HFBeaconActivity extends Activity {
 					int rawBearing = (360 + (int) results[1]) % 360;
 					bearings[i] = ((rawBearing < 100) ? "0" : "") + ((rawBearing < 10) ? "0" : "") + rawBearing;
 				}
-				if (logging == true)
-					Log.d(TAG, "calling updateLocation from onLocationChanged");
+				Log.d(TAG, "calling updateLocation from onLocationChanged");
 				updateLocation(location);
 			}
 		}
 
 		@Override
 		public void onProviderDisabled(String oldprovider) {
-			if (logging == true)
-				Log.v(TAG, "entered onProviderDisabled");
+			Log.v(TAG, "entered onProviderDisabled");
 			if (oldprovider == provider) {
 				getBestProvider();
 			}
@@ -190,8 +179,7 @@ public class HFBeaconActivity extends Activity {
 
 		@Override
 		public void onProviderEnabled(String newprovider) {
-			if (logging == true)
-				Log.v(TAG, "entered onProviderEnabled");
+			Log.v(TAG, "entered onProviderEnabled");
 			if (newprovider != provider) {
 				getBestProvider();
 			}
@@ -199,8 +187,7 @@ public class HFBeaconActivity extends Activity {
 
 		@Override
 		public void onStatusChanged(String oldprovider, int status, Bundle extras) {
-			if (logging == true)
-				Log.v(TAG, "entered onStatusChanged");
+			Log.v(TAG, "entered onStatusChanged");
 			if ((oldprovider == provider && (status == LocationProvider.OUT_OF_SERVICE || 
 											 status == LocationProvider.TEMPORARILY_UNAVAILABLE)) ||
 				(oldprovider != provider && status == LocationProvider.AVAILABLE))
@@ -212,10 +199,8 @@ public class HFBeaconActivity extends Activity {
 	
 	/** Gets the current best location service provider */
 	private void getBestProvider() {
-		if (logging == true)
-			Log.v(TAG, "entered getBestProvider");
+		Log.v(TAG, "entered getBestProvider");
 		
-		// TODO: move manager and criteria elsewhere to some other function? 
 		// manager
 		if (locmanager == null)
 			locmanager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -229,12 +214,10 @@ public class HFBeaconActivity extends Activity {
 		// provider
 		provider = locmanager.getBestProvider(criteria, true);
 		if (provider == null) {
-			if (logging == true)
-				Log.d(TAG, "no provider enabled at all");
+			Log.w(TAG, "no provider enabled at all");
 			showLocationDisabled(this);
 		} else {
-			if (logging == true)
-				Log.d(TAG, "best provider is " + provider);
+			Log.d(TAG, "best provider is " + provider);
 		}
 	}
 
@@ -242,40 +225,33 @@ public class HFBeaconActivity extends Activity {
 	private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
 		@Override
 	    public void onReceive(Context context, Intent intent) {
-			if (logging == true)
-				Log.v(TAG, "entered onReceive");
+			Log.v(TAG, "entered onReceive");
 			
 			String action = intent.getAction();
 			Bundle extras = intent.getExtras();
-			if (logging == true)
-				Log.d(TAG, "action: " + action + ", extras: " + extras);
+			Log.d(TAG, "action: " + action + ", extras: " + extras);
 			
 			if (action.equals(HFBeaconService.UPDATEBEACONS)) {
-				if (logging == true)
-					Log.d(TAG, "received intent to update beacons");
+				Log.i(TAG, "received intent to update beacons");
 				
 				// what beacons are they
 				int beacons[] = extras.getIntArray(HFBeaconService.CONTENTS);
 				pastBeacon = beacons[0]; 
 				presentBeacon = beacons[1]; 
 				futureBeacon = beacons[2]; 
-				if (logging == true)
-					Log.d(TAG, "beacons = " + pastBeacon + ", " + presentBeacon + ", " + futureBeacon);
+				Log.d(TAG, "beacons = " + pastBeacon + ", " + presentBeacon + ", " + futureBeacon);
 
 				// set the textviews and stuff for band and beacons
-				if (logging == true)
-					Log.d(TAG, "running setBeacons from onReceive");
+				Log.i(TAG, "running setBeacons from onReceive");
 				setBeacons();
 			} else {
-		    	if (logging == true)
-		    		Log.d(TAG, "received unknown intent: " + action);
+				Log.d(TAG, "received unknown intent: " + action);
 			}
 	    }
 	};
 	
 	/** Converts location into Maidenhead grid square as described in http://en.wikipedia.org/wiki/Maidenhead_Locator_System */
 	private String gridSquare(Location location) {
-		if (logging == true)
 			Log.v(TAG, "entered gridSquare");
 
 		final String[] field = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R" };
@@ -301,32 +277,45 @@ public class HFBeaconActivity extends Activity {
 	
 	/** Converts raw latitude string value to a more user-friendly format */
 	private String readableLatitude(Location location) {
-		if (logging == true) 
-			Log.v(TAG, "entered readableLatitude");
+		Log.v(TAG, "entered readableLatitude");
 		
-		String[] latitude = Location.convert(location.getLatitude(), Location.FORMAT_SECONDS).split(":");
+		String[] latitude = Location.convert(location.getLatitude(), Location.FORMAT_SECONDS).split(":|\\.");
+		String degree = latitude[0].replaceFirst("-", "") + '\u00B0';
+		String minute = latitude[1] + '\'';
+		String second = latitude[2] + "\" ";
 
-		// what format do I want to use?
-		// 12<deg>34<min>56.789<sec> [N|S]
-		return latitude[0].replaceFirst("-", "") + '\u00B0' + latitude[1] + '\'' + latitude[2] + "\" " + ((latitude[0].startsWith("-")) ? "S" : "N");
+		String result = degree + minute;
+		if (doDMS) {
+			result += second;
+		}
+		
+		result += " " + ((latitude[0].startsWith("-")) ? "S" : "N");
+		
+		return result;
 	}
 	
 	/** Converts raw longitude string value to a more user-friendly format */
 	private String readableLongitude(Location location) {
-		if (logging == true)
-			Log.v(TAG, "entered readableLongitude");
+		Log.v(TAG, "entered readableLongitude");
 		
-		String[] longitude = Location.convert(location.getLongitude(), Location.FORMAT_SECONDS).split(":");
+		String[] longitude = Location.convert(location.getLongitude(), Location.FORMAT_SECONDS).split(":|\\.");
+		String degree = longitude[0].replaceFirst("-", "") + '\u00B0';
+		String minute = longitude[1] + '\'';
+		String second = longitude[2] + "\" ";
 
-		// what format do I want to use?
-		// 12<deg>34<min>56.789<sec> [E|W]
-		return longitude[0].replaceFirst("-", "") + '\u00B0' + longitude[1] + '\'' + longitude[2] + "\" " + ((longitude[0].startsWith("-")) ? "W" : "E");
+		String result = degree + minute;
+		if (doDMS) {
+			result += second;
+		}
+		
+		result += " " + ((longitude[0].startsWith("-")) ? "W" : "E");
+		
+		return result;
 	}
 	
 	/** Updates location and recalculates range and bearing */
 	private void updateLocation(Location location) {
-		if (logging == true)
-			Log.v(TAG, "entered updateLocation");
+		Log.v(TAG, "entered updateLocation");
 		
 		// calculate Maidenhead grid square and store in textview
 		maidenheadValue.setText(GridSquare);
@@ -346,8 +335,7 @@ public class HFBeaconActivity extends Activity {
 
 	/** Sets past, present, and future beacons based on current band and time */
 	private void setBeacons() {
-		if (logging == true) 
-			Log.v(TAG, "entered setBeacons");
+		Log.v(TAG, "entered setBeacons");
 		
 		// display past, present and future values
 		pastCallsign.setText(callsigns[pastBeacon]);
@@ -366,8 +354,7 @@ public class HFBeaconActivity extends Activity {
 
 	private ServiceConnection mConnection = new ServiceConnection() {
 	    public void onServiceConnected(ComponentName className, IBinder service) {
-			if (logging == true)
-				Log.v(TAG, "entered onServiceConnected");
+	    	Log.v(TAG, "entered onServiceConnected");
 	        // This is called when the connection with the service has been
 	        // established, giving us the service object we can use to
 	        // interact with the service.  Because we have bound to a explicit
@@ -381,8 +368,7 @@ public class HFBeaconActivity extends Activity {
 	        Parcel offsetData = Parcel.obtain();
 	        offsetData.writeBundle(offsetValues);
 	        try {
-	        	if (logging == true)
-	        		Log.d(TAG, "sending offset transact request to service");
+	        	Log.d(TAG, "sending offset transact request to service");
 				mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETOFFSET, offsetData, null, 0);
 			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
@@ -391,8 +377,7 @@ public class HFBeaconActivity extends Activity {
 		}
 
 	    public void onServiceDisconnected(ComponentName className) {
-			if (logging == true)
-				Log.v(TAG, "entered onServiceDisconnected");
+	    	Log.v(TAG, "entered onServiceDisconnected");
 	        // This is called when the connection with the service has been
 	        // unexpectedly disconnected -- that is, its process crashed.
 	        // Because it is running in our same process, we should never
@@ -402,8 +387,7 @@ public class HFBeaconActivity extends Activity {
 	};
 
 	void doBindService() {
-		if (logging == true)
-			Log.v(TAG, "entered doBindService");
+		Log.v(TAG, "entered doBindService");
 	    // Establish a connection with the service.  We use an explicit
 	    // class name because we want a specific service implementation that
 	    // we know will be running in our own process (and thus won't be
@@ -413,8 +397,7 @@ public class HFBeaconActivity extends Activity {
 	}
 
 	void doUnbindService() {
-		if (logging == true)
-			Log.v(TAG, "entered doUnbindService");
+		Log.v(TAG, "entered doUnbindService");
 	    if (mIsBound) {
 	        // Detach our existing connection.
 	        unbindService(mConnection);
@@ -428,8 +411,7 @@ public class HFBeaconActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		if (logging == true) 
-			Log.v(TAG, "entered onCreate");
+		Log.v(TAG, "entered onCreate");
 
 		// import resources
 		Resources res = getResources();
@@ -457,7 +439,6 @@ public class HFBeaconActivity extends Activity {
 		futureRegion = (TextView) this.findViewById(R.id.futureRegion);
 		futureBearing = (TextView) this.findViewById(R.id.futureBearing);
 		futureRange = (TextView) this.findViewById(R.id.futureRange);
-
 		
 		// assemble the spinner
 		Spinner spinner = (Spinner) this.findViewById(R.id.bandSpinner);
@@ -468,8 +449,7 @@ public class HFBeaconActivity extends Activity {
 		spinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-				if (logging == true) 
-					Log.v(TAG, "entering onItemSelected");
+				Log.v(TAG, "entering onItemSelected");
 				
 		        // now set the band value!
 		        Bundle bandValues = new Bundle();
@@ -477,12 +457,10 @@ public class HFBeaconActivity extends Activity {
 		        Parcel bandData = Parcel.obtain();
 		        bandData.writeBundle(bandValues);
 	        	if (mBoundService == null) {
-	        		if (logging == true)
-	        			Log.d(TAG, "mBoundService is null, service must have disconnected, possibly orientation");
+	        		Log.e(TAG, "mBoundService is null, service must have disconnected, possibly orientation");
 	        	} else {
 	        		try {
-	        			if (logging == true)
-	        				Log.d(TAG, "sending band transact request to service");
+	        			Log.d(TAG, "sending band transact request to service");
 	        			mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETBAND, bandData, null, 0);
 	        		} catch (RemoteException e) {
 	        			// TODO Auto-generated catch block
@@ -495,20 +473,13 @@ public class HFBeaconActivity extends Activity {
 			public void onNothingSelected(AdapterView<?> arg0) {
 			}
 		});
-		
-		// define intent and intent filter
-		mIntentFilter = new IntentFilter();
-		mIntentFilter.addAction(HFBeaconService.UPDATEBEACONS);
-		if (logging == true)
-			Log.d(TAG, "mIntentFilter is" + mIntentFilter);
 	}
 
 	/** Called when the activity is becoming visible to the user. */
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if (logging == true) 
-			Log.v(TAG, "entered onStart");
+		Log.v(TAG, "entered onStart");
 
 		// provider
 		if (provider == null)
@@ -517,16 +488,14 @@ public class HFBeaconActivity extends Activity {
 		// try to get the last known location
 		location = locmanager.getLastKnownLocation(provider);
 		if (location == null) {
-			if (logging == true) 
-				Log.d(TAG, "null - no last known location");
+			Log.w(TAG, "null - no last known location");
 			// display "waiting for location" page
 			showWaiting(this);
 			return;
 		}
 
 		// start service
-		if (logging == true)
-			Log.d(TAG, "binding service");
+		Log.d(TAG, "binding service");
 	    doBindService();
 	}
 
@@ -534,41 +503,34 @@ public class HFBeaconActivity extends Activity {
 	@Override
 	protected void onRestart() {
 		super.onRestart();
-		if (logging == true) 
-			Log.v(TAG, "entered onRestart");
+		Log.v(TAG, "entered onRestart");
 	}
 
 	/** Called when the activity will start interacting with the user. */
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (logging == true) 
-			Log.v(TAG, "entered onResume");
+		Log.v(TAG, "entered onResume");
+
+		int minDist;
 
 		// start the location listener
-
-		// Speaking of which, how often should I be getting location updates?
-		// Wikipedia says no two points in the same grid square can be further
-		// apart than 12km.  If I'm displaying in degrees-minutes, I want to get
-		// updates at the half-minute level, or 900m.  Displaying in
-		// degrees-minutes-seconds would require half-second updates which is
-		// 15m.  I think I'll stick to degrees-minutes at first and add
-		// degrees-minutes-seconds with a warning of battery usage.	
+		if (doDMS)
+			minDist = HALF_SECOND_IN_METERS;
+		else
+			minDist = HALF_MINUTE_IN_METERS;
 		
-		locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, HALF_MINUTE_IN_METERS, loclistener);
+		locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, minDist, loclistener);
 
 		// register receiver
-		if (logging == true)
-			Log.d(TAG, "registering receiver");
-		registerReceiver(mIntentReceiver, mIntentFilter, null, null);
+		registerReceiver(mIntentReceiver, new IntentFilter(HFBeaconService.UPDATEBEACONS), null, null);
 	}
 
 	/** Called when the system is about to start resuming a previous activity. */
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (logging == true) 
-			Log.v(TAG, "entered onPause");
+		Log.v(TAG, "entered onPause");
 		
 		// store band in preferences
 		// TODO: add DM/DMS display to preferences
@@ -587,12 +549,10 @@ public class HFBeaconActivity extends Activity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		if (logging == true) 
-			Log.v(TAG, "entered onStop");
+		Log.v(TAG, "entered onStop");
 
 		// stop service
-		if (logging == true)
-			Log.d(TAG, "stopping service");
+		Log.d(TAG, "stopping service");
 	    doUnbindService();
 	}
 
@@ -600,27 +560,14 @@ public class HFBeaconActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (logging == true) 
-			Log.v(TAG, "entered onDestroy");
+		Log.v(TAG, "entered onDestroy");
 	}
 
-	/** Store temporary state (such as the content of a text field) */
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		if (logging == true) 
-			Log.v(TAG, "entered onSaveInstanceState");
-
-		// store band in bundle
-		outState.putInt(BAND, band);
-	}
-	
 	/** build options menu during OnCreate */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		if (logging == true) 
-			Log.v(TAG, "entered onCreateOptionsMenu");
+		Log.v(TAG, "entered onCreateOptionsMenu");
 		
 		// add info
 		menu.add(0, MENU_INFO, 0, R.string.menu_info);
@@ -632,8 +579,7 @@ public class HFBeaconActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		super.onOptionsItemSelected(item);
-		if (logging == true) 
-			Log.v(TAG, "entered onOptionsItemSelected");
+		Log.v(TAG, "entered onOptionsItemSelected");
 		
 		// display info
 		switch (item.getItemId()) {
@@ -649,8 +595,7 @@ public class HFBeaconActivity extends Activity {
 
 	/** displays "about..." page */
 	private void showAbout(final Activity activity) {
-		if (logging == true) 
-			Log.v(TAG, "entered showAbout");
+		Log.v(TAG, "entered showAbout");
 		
 		final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 		PackageManager pm = getPackageManager();
@@ -658,8 +603,7 @@ public class HFBeaconActivity extends Activity {
 		try {
 			versionName = pm.getPackageInfo(getPackageName(), 0).versionName;
 		} catch (NameNotFoundException e) {
-			if (logging == true)
-				Log.d(TAG, "PackageManager threw NameNotFoundException");
+			Log.w(TAG, "PackageManager threw NameNotFoundException");
 			versionName = "";
 		}
 
@@ -676,8 +620,7 @@ public class HFBeaconActivity extends Activity {
 	
 	/** displays "waiting for position" page */
 	private void showWaiting(final Activity activity) {
-		if (logging == true)
-			Log.v(TAG, "entered showWaiting");
+		Log.v(TAG, "entered showWaiting");
 		
 		final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 		
@@ -694,8 +637,7 @@ public class HFBeaconActivity extends Activity {
 	
 	/** displays "location disabled" page */
 	private void showLocationDisabled(final Activity activity) {
-		if (logging == true)
-			Log.v(TAG, "entered showLocationDisabled");
+		Log.v(TAG, "entered showLocationDisabled");
 		
 		final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 		
