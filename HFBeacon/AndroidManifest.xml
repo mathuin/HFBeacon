@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.twilley.android.hfbeacon"
       android:versionCode="20" android:versionName="2.0">
@@ -11,11 +12,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-    <service android:name=".HFBeaconService" android:enabled="true"></service>
-
-</application>
-    <uses-sdk android:minSdkVersion="5" />
-
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+        <activity android:name=".HFBeaconPreferenceActivity"
+       			  android:label="HFBeacon Preferences"
+       			  android:theme="@style/hfbeaconTheme">
+        </activity>
+	    <service android:name=".HFBeaconService" android:enabled="true"></service>
+	</application>
+    <uses-sdk android:minSdkVersion="3"/>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
 </manifest> 

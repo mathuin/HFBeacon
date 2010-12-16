@@ -1,32 +1,30 @@
 HFBeacon 2.0 notes
 
-0.  Add tests for all existing features.
-	Yes, even the ones that are to be disabled!
-
 1.  Convert timer thread to a service - DONE!
 	The handler has been moved to a service.  The service accepts transactions from the activity to
 	change the band and offset.  The service sends broadcasts to the activity containing the beacons
 	to be displayed.
     
-2.  Implement local offset - partly done.
+2.  Implement local offset - DONE!
 	The service accepts offset transactions from the activity.
 	The activity needs to offer a menu page for setting the offset.
 	
-3.  Implement multiple sources for local offset.
-	The service currently stores the offset in the preferences.
-	It will need to store the offset and type when multiple sources are supported.
+4.  Degree-minute versus degree-minute-second - DONE!
+	The default is to use degree-minute-second.
+	The location listener changes based on the DM/DMS setting.
+	No warning about power usage at this time.
 	
-4.  Degree-minute versus degree-minute-second.
-	The position displayed needs to be cleaned up.
-	The selection of DM versus DMS needs to be in the preferences.
-	Perhaps the location listener should change based on the DM/DMS setting?
-	If so, use HALF_MINUTE_IN_METERS (900) and HALF_SECOND_IN_METERS (15).
-	Consider warning about power usage with DMS level.
-	DEFERRED - for now, just setting it to DMS but Readable functions will support both.
-	
-
 5.  Internationalization.
 	Fake it for Spanish, French, and German.  Ask for updates.
+
+For the future:
+	
+0.  Add tests for all existing features.
+	Yes, even the ones that are to be disabled!
+
+3.  Implement multiple sources for local offset - DEFERRED.
+	The service currently stores the offset in the preferences.
+	It will need to store the offset and type when multiple sources are supported.
 	
 6.  Fixed versus mobile.
 	Exit after a single location detected.

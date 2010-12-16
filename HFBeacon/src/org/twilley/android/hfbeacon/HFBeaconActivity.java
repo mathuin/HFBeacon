@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
@@ -21,6 +23,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
@@ -33,6 +36,7 @@ import android.widget.TextView;
 
 public class HFBeaconActivity extends Activity {
 	private static final String TAG = "HFBeaconActivity";
+	private static final String USEDMS = "UseDMS";
 	// time values
 	private static final int ONE_MINUTE_IN_MILLIS = 1000 * 60 * 2;
 	private static final int TWO_MINUTES_IN_MILLIS = 1000 * 60 * 2;
@@ -41,10 +45,9 @@ public class HFBeaconActivity extends Activity {
 	private static final int HALF_MINUTE_IN_METERS = 900;
 	// sigh
 	private static final int MENU_INFO = 0;
+	private static final int MENU_PREFERENCES = 1;
 	private int band;
-	private int offset = +12000; // positive values are when phone is faster than reality
-	// for 2000, when phone clock says 17:12:42, real time is 17:12:40
-	// for -2000, when phone clock says 17:12:38, real time is 17:12:40
+	private int offset; 
 	private int numBeacons;
 	private int pastBeacon;
 	private int presentBeacon;
@@ -60,10 +63,12 @@ public class HFBeaconActivity extends Activity {
 	private String provider = null;
 	private Location location = null;
 	private Location currentBestLocation = null;
-	private String GridSquare = "---";
-	private String ReadableLatitude = "---";
-	private String ReadableLongitude = "---";
-	private boolean doDMS = true;
+	private String GridSquare = null;
+	private String ReadableLatitude = null;
+	private String ReadableLongitude = null;
+	private SharedPreferences app_preferences;
+	private boolean useDMS;
+	private OnSharedPreferenceChangeListener listener;
 	private HFBeaconService mBoundService;
 	private boolean mIsBound;
 	private TextView maidenheadValue;
@@ -81,6 +86,7 @@ public class HFBeaconActivity extends Activity {
 	private TextView presentRegion;
 	private TextView futureCallsign;
 	private TextView futureRegion;
+	private TextView offsetValue;
 
 	/* from http://developer.android.com/guide/topics/location/obtaining-user-location.html */
 	
@@ -285,7 +291,7 @@ public class HFBeaconActivity extends Activity {
 		String second = latitude[2] + "\" ";
 
 		String result = degree + minute;
-		if (doDMS) {
+		if (useDMS) {
 			result += second;
 		}
 		
@@ -304,7 +310,7 @@ public class HFBeaconActivity extends Activity {
 		String second = longitude[2] + "\" ";
 
 		String result = degree + minute;
-		if (doDMS) {
+		if (useDMS) {
 			result += second;
 		}
 		
@@ -350,6 +356,9 @@ public class HFBeaconActivity extends Activity {
 		futureRegion.setText(regions[futureBeacon]);
 		futureBearing.setText(bearings[futureBeacon]);
 		futureRange.setText(ranges[futureBeacon]);
+		
+		// update offset value here
+		offsetValue.setText((( offset < 0 ) ? "" : "+") + offset + " ms");
 	}
 
 	private ServiceConnection mConnection = new ServiceConnection() {
@@ -385,7 +394,7 @@ public class HFBeaconActivity extends Activity {
 	        mBoundService = null;
 	    }
 	};
-
+	
 	void doBindService() {
 		Log.v(TAG, "entered doBindService");
 	    // Establish a connection with the service.  We use an explicit
@@ -423,6 +432,55 @@ public class HFBeaconActivity extends Activity {
 		bearings = new CharSequence[numBeacons];
 		ranges = new CharSequence[numBeacons];
 
+		// open preferences
+		Log.d(TAG, "opening preferences");
+		app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		// band may be useful for spinner
+		band = app_preferences.getInt(HFBeaconService.BAND, 0);
+		offset = app_preferences.getInt(HFBeaconService.OFFSET, 0);
+		Log.i(TAG, "get - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
+		useDMS = app_preferences.getBoolean(USEDMS, true);
+		listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+			@Override
+			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+					String key) {
+				// TODO Auto-generated method stub
+				if (key.equals(HFBeaconService.OFFSET)) {
+					Log.d(TAG, "received new offset from shared preferences");
+			        // now set the offset value!
+					offset = sharedPreferences.getInt(key, 0);
+					Bundle offsetValues = new Bundle();
+			        offsetValues.putInt(HFBeaconService.HFBeaconBinder.VALUEKEY, offset);
+			        Parcel offsetData = Parcel.obtain();
+			        offsetData.writeBundle(offsetValues);
+			        try {
+			        	Log.d(TAG, "sending offset transact request to service");
+						mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETOFFSET, offsetData, null, 0);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else if (key.equals(USEDMS)) {
+					Log.d(TAG, "received new UseDMS from shared preferences");
+					useDMS = sharedPreferences.getBoolean(key, true);
+
+					int minDist;
+					
+					// kill update events
+					locmanager.removeUpdates(loclistener);
+
+					// start the location listener
+					if (useDMS)
+						minDist = HALF_SECOND_IN_METERS;
+					else
+						minDist = HALF_MINUTE_IN_METERS;
+					
+					locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, minDist, loclistener);
+				}
+			}
+		};
+		app_preferences.registerOnSharedPreferenceChangeListener(listener);
+
 		// define the textviews
 		maidenheadValue = (TextView) this.findViewById(R.id.maidenheadValue);
 		latitudeValue = (TextView) this.findViewById(R.id.latitudeValue);
@@ -439,6 +497,7 @@ public class HFBeaconActivity extends Activity {
 		futureRegion = (TextView) this.findViewById(R.id.futureRegion);
 		futureBearing = (TextView) this.findViewById(R.id.futureBearing);
 		futureRange = (TextView) this.findViewById(R.id.futureRange);
+		offsetValue = (TextView) this.findViewById(R.id.offsetValue);
 		
 		// assemble the spinner
 		Spinner spinner = (Spinner) this.findViewById(R.id.bandSpinner);
@@ -484,6 +543,8 @@ public class HFBeaconActivity extends Activity {
 		// provider
 		if (provider == null)
 			getBestProvider();
+		if (provider == null)
+			return;
 		
 		// try to get the last known location
 		location = locmanager.getLastKnownLocation(provider);
@@ -515,12 +576,17 @@ public class HFBeaconActivity extends Activity {
 		int minDist;
 
 		// start the location listener
-		if (doDMS)
+		if (useDMS)
 			minDist = HALF_SECOND_IN_METERS;
 		else
 			minDist = HALF_MINUTE_IN_METERS;
 		
-		locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, minDist, loclistener);
+		if (provider==null)
+			getBestProvider();
+		if (provider==null)
+			return;
+		else
+			locmanager.requestLocationUpdates(provider, ONE_MINUTE_IN_MILLIS, minDist, loclistener);
 
 		// register receiver
 		registerReceiver(mIntentReceiver, new IntentFilter(HFBeaconService.UPDATEBEACONS), null, null);
@@ -532,17 +598,15 @@ public class HFBeaconActivity extends Activity {
 		super.onPause();
 		Log.v(TAG, "entered onPause");
 		
-		// store band in preferences
-		// TODO: add DM/DMS display to preferences
-		// SharedPreferences.Editor editor = app_preferences.edit();
-		// editor.putInt(BAND, band);
-		// editor.commit();
+		try {
+			// deregister receiver
+			unregisterReceiver(mIntentReceiver);
+			// kill update events\
+			locmanager.removeUpdates(loclistener);
+		} catch (IllegalArgumentException e) {
+			;
+		}
 		
-		// deregister receiver
-		unregisterReceiver(mIntentReceiver);
-		
-		// kill update events
-		locmanager.removeUpdates(loclistener);
 	}
 
 	/** Called when the activity is no longer visible to the user. */
@@ -561,6 +625,19 @@ public class HFBeaconActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.v(TAG, "entered onDestroy");
+
+		// update preferences
+		try {
+			app_preferences.unregisterOnSharedPreferenceChangeListener(listener);
+		} catch (IllegalArgumentException e) {
+			;
+		}
+		SharedPreferences.Editor editor = app_preferences.edit();
+		Log.i(TAG, "set - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
+		editor.putInt(HFBeaconService.BAND, band);
+		editor.putInt(HFBeaconService.OFFSET, offset);
+		editor.putBoolean(USEDMS, useDMS);
+		editor.commit();
 	}
 
 	/** build options menu during OnCreate */
@@ -571,6 +648,7 @@ public class HFBeaconActivity extends Activity {
 		
 		// add info
 		menu.add(0, MENU_INFO, 0, R.string.menu_info);
+		menu.add(1, MENU_PREFERENCES, 1, "Preferences");
 		
 		return true;
 	}
@@ -587,6 +665,9 @@ public class HFBeaconActivity extends Activity {
 			// display info
 			showAbout(this);
 			return true;
+		case MENU_PREFERENCES:
+			Intent intent = new Intent(this, HFBeaconPreferenceActivity.class);
+			startActivity(intent);
 		default:
 			// should never reach here...
 			return false;

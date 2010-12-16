@@ -14,10 +14,10 @@ import android.util.Log;
 public class HFBeaconService extends Service {
 	private static final String TAG = "HFBeaconService";
 	// TODO: move these strings to the resources directory
-	public static final String UPDATEBEACONS = "org.twilley.android.hfbeacon.UPDATEBEACONS";
-	public static final String CONTENTS = "org.twilley.android.hfbeacon.beacons";
-	private static final String BAND = "band";
-	private static final String OFFSET = "offset";
+	static final String UPDATEBEACONS = "org.twilley.android.hfbeacon.UPDATEBEACONS";
+	static final String CONTENTS = "org.twilley.android.hfbeacon.beacons";
+	static final String BAND = "Band";
+	static final String OFFSET = "Offset";
 	private static final int TEN_SECONDS_IN_MILLIS = 1000 * 10;
 	private int band;
 	private int offset;
@@ -82,7 +82,8 @@ public class HFBeaconService extends Service {
     				returnCode = false;
     			}
 				if (returnCode == true) {
-					long next = broadcastBeacon(now);
+					broadcastBeacon(now);
+					long next = genNext(now);
 					Log.d(TAG, "removing callbacks");
 					mHandler.removeCallbacks(beaconBroadcaster);
 					Log.d(TAG, "postDelayed in " + (next - System.currentTimeMillis()) + " milliseconds");
@@ -110,14 +111,16 @@ public class HFBeaconService extends Service {
 		super.onCreate();
 		Log.v(TAG, "entered onCreate");
 
-		// calculate next event
-		long next = ((System.currentTimeMillis() / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS + (offset % TEN_SECONDS_IN_MILLIS);
-		
 		// open preferences
 		Log.d(TAG, "opening preferences");
 		app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		band = app_preferences.getInt(BAND, 0);
+		Log.i(TAG, "get - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
 		offset = app_preferences.getInt(OFFSET, 0);
+		
+		// calculate next event
+		long now = System.currentTimeMillis();
+		long next = genNext(now);
 		
 		// configure mHandler
 		mHandler = new Handler();
@@ -126,14 +129,12 @@ public class HFBeaconService extends Service {
 	}
 
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.v(TAG, "entered onStartCommand");
-		
+	public void onStart(Intent intent, int startId) {
+		Log.v(TAG, "entered onStart");
+
 		Log.d(TAG, "intent: " + intent + ", startId: " + startId);
-		
-	    return START_STICKY;
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		Log.v(TAG, "entered onDestroy");
@@ -143,6 +144,7 @@ public class HFBeaconService extends Service {
 		Log.d(TAG, "saving preferences");
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putInt(BAND, band);
+		Log.i(TAG, "set - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
 		editor.putInt(OFFSET, offset);
 		editor.commit();
 		
@@ -151,12 +153,13 @@ public class HFBeaconService extends Service {
 		mHandler.removeCallbacks(beaconBroadcaster);
 	}
 
-	/** Actually broadcast the beacon and return the next time */
-	private long broadcastBeacon(long now) {
+	/** Actually broadcast the beacon */
+	private void broadcastBeacon(long now) {
 		Log.v(TAG, "entered broadcastBeacon");
 
-		Log.d(TAG, "band = " + band);
-		Log.d(TAG, "offset = " + offset);
+		// positive values are when phone is faster than reality
+		// for 2000, when phone clock says 17:12:42, real time is 17:12:40
+		// for -2000, when phone clock says 17:12:38, real time is 17:12:40
 		int beacon = (int) ((now - offset) % (numBeacons * TEN_SECONDS_IN_MILLIS) / TEN_SECONDS_IN_MILLIS) - band;
 		int pastBeacon = (numBeacons + beacon - 1) % numBeacons;
 		int presentBeacon = (numBeacons + beacon) % numBeacons;
@@ -168,8 +171,6 @@ public class HFBeaconService extends Service {
 		intent.putExtra(CONTENTS, beacons);
 		Log.i(TAG, "sending broadcast" + intent);
 		sendBroadcast(intent);
-				
-		return ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS + (offset % TEN_SECONDS_IN_MILLIS);
 	}
 	
 	/** Runs every ten seconds updating beacons */
@@ -179,7 +180,8 @@ public class HFBeaconService extends Service {
 
 			// actually broadcast the beacons
 			long now = System.currentTimeMillis();
-			long next = broadcastBeacon(now);
+			broadcastBeacon(now);
+			long next = genNext(now);
 			
 			// reset mHandler for next event
 			Log.d(TAG, "removing callbacks");
@@ -188,4 +190,17 @@ public class HFBeaconService extends Service {
 			mHandler.postDelayed(this, next - System.currentTimeMillis());
 		}
 	};
+
+	private long genNext(long now) {
+		Log.v(TAG, "entered genNext");
+
+		// calculate next event
+		long next = ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS + (offset % TEN_SECONDS_IN_MILLIS);
+		Log.d(TAG, "now = " + now + ", next = " + next + ", diff is " + (next - now));
+		if (next < now) {
+			next += (((now - next) / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS;
+			Log.d(TAG, "new next = " + next);
+		}
+		return next;
+	}
 }
