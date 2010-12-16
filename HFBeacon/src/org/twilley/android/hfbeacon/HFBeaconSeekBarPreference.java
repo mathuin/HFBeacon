@@ -146,7 +146,7 @@ public class HFBeaconSeekBarPreference extends Preference implements OnSeekBarCh
 		textbar.setOrientation(LinearLayout.HORIZONTAL);
 		textbar.setLayoutParams(textbarParams);
 
-		label.setText("Offset: ");
+		label.setText(R.string.offsetLabel);
 		label.setTextSize(18);
 		label.setTypeface(Typeface.SANS_SERIF, Typeface.BOLD);
 		label.setGravity(Gravity.LEFT);
@@ -195,6 +195,7 @@ public class HFBeaconSeekBarPreference extends Preference implements OnSeekBarCh
 	public void updateOffset(int newOffset) {
 		oldRealValue = newOffset;
 		bar.setProgress(fromRealtoBar(oldRealValue));
+		// not going to extract.  milliseconds are milliseconds.
 		value.setText(((oldRealValue < 0) ? "" : "+") + oldRealValue + " ms");
 		updatePreference(oldRealValue);
 	}

@@ -13,7 +13,6 @@ import android.util.Log;
 
 public class HFBeaconService extends Service {
 	private static final String TAG = "HFBeaconService";
-	// TODO: move these strings to the resources directory
 	static final String UPDATEBEACONS = "org.twilley.android.hfbeacon.UPDATEBEACONS";
 	static final String CONTENTS = "org.twilley.android.hfbeacon.beacons";
 	static final String BAND = "Band";
@@ -26,7 +25,6 @@ public class HFBeaconService extends Service {
 	private SharedPreferences app_preferences;
 
 	public class HFBeaconBinder extends Binder {
-		// TODO: move these strings to the resources directory
 		public static final int SETBAND = 0;
 		public static final int SETOFFSET = 1;
 		public static final String TYPEKEY = "type";
@@ -84,11 +82,9 @@ public class HFBeaconService extends Service {
 				if (returnCode == true) {
 					broadcastBeacon(now);
 					long next = genNext(now);
-					Log.d(TAG, "removing callbacks");
 					mHandler.removeCallbacks(beaconBroadcaster);
 					Log.d(TAG, "postDelayed in " + (next - System.currentTimeMillis()) + " milliseconds");
 					mHandler.postDelayed(beaconBroadcaster, next - System.currentTimeMillis());
-					returnCode = true;
 				}
 				break;
     		default:
@@ -112,10 +108,8 @@ public class HFBeaconService extends Service {
 		Log.v(TAG, "entered onCreate");
 
 		// open preferences
-		Log.d(TAG, "opening preferences");
 		app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		band = app_preferences.getInt(BAND, 0);
-		Log.i(TAG, "get - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
 		offset = app_preferences.getInt(OFFSET, 0);
 		
 		// calculate next event
@@ -141,15 +135,12 @@ public class HFBeaconService extends Service {
 
 		// okay, we're storing and retrieving band and offset to preferences
 		// eventually we'll have to store offset type and value
-		Log.d(TAG, "saving preferences");
 		SharedPreferences.Editor editor = app_preferences.edit();
 		editor.putInt(BAND, band);
-		Log.i(TAG, "set - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
 		editor.putInt(OFFSET, offset);
 		editor.commit();
 		
 		// drop the mHandler stuff
-		Log.d(TAG, "removing callbacks");
 		mHandler.removeCallbacks(beaconBroadcaster);
 	}
 
@@ -184,7 +175,6 @@ public class HFBeaconService extends Service {
 			long next = genNext(now);
 			
 			// reset mHandler for next event
-			Log.d(TAG, "removing callbacks");
 			mHandler.removeCallbacks(this);
 			Log.d(TAG, "postDelayed in " + (next - System.currentTimeMillis()) + " milliseconds");
 			mHandler.postDelayed(this, next - System.currentTimeMillis());
@@ -196,10 +186,8 @@ public class HFBeaconService extends Service {
 
 		// calculate next event
 		long next = ((now / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS + (offset % TEN_SECONDS_IN_MILLIS);
-		Log.d(TAG, "now = " + now + ", next = " + next + ", diff is " + (next - now));
 		if (next < now) {
 			next += (((now - next) / TEN_SECONDS_IN_MILLIS) + 1) * TEN_SECONDS_IN_MILLIS;
-			Log.d(TAG, "new next = " + next);
 		}
 		return next;
 	}

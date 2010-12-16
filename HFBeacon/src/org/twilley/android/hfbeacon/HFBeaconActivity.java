@@ -58,6 +58,13 @@ public class HFBeaconActivity extends Activity {
 	private CharSequence[] longitudes;
 	private CharSequence[] bearings;
 	private CharSequence[] ranges;
+	private String northAbbrev;
+	private String southAbbrev;
+	private String eastAbbrev;
+	private String westAbbrev;
+	private CharSequence[] maidenheadField;
+	private CharSequence[] maidenheadDigit;
+	private CharSequence[] maidenheadSub;	
 	private LocationManager locmanager = null;
 	private Criteria criteria = null;
 	private String provider = null;
@@ -170,7 +177,6 @@ public class HFBeaconActivity extends Activity {
 					int rawBearing = (360 + (int) results[1]) % 360;
 					bearings[i] = ((rawBearing < 100) ? "0" : "") + ((rawBearing < 10) ? "0" : "") + rawBearing;
 				}
-				Log.d(TAG, "calling updateLocation from onLocationChanged");
 				updateLocation(location);
 			}
 		}
@@ -235,7 +241,6 @@ public class HFBeaconActivity extends Activity {
 			
 			String action = intent.getAction();
 			Bundle extras = intent.getExtras();
-			Log.d(TAG, "action: " + action + ", extras: " + extras);
 			
 			if (action.equals(HFBeaconService.UPDATEBEACONS)) {
 				Log.i(TAG, "received intent to update beacons");
@@ -248,7 +253,6 @@ public class HFBeaconActivity extends Activity {
 				Log.d(TAG, "beacons = " + pastBeacon + ", " + presentBeacon + ", " + futureBeacon);
 
 				// set the textviews and stuff for band and beacons
-				Log.i(TAG, "running setBeacons from onReceive");
 				setBeacons();
 			} else {
 				Log.d(TAG, "received unknown intent: " + action);
@@ -258,12 +262,10 @@ public class HFBeaconActivity extends Activity {
 	
 	/** Converts location into Maidenhead grid square as described in http://en.wikipedia.org/wiki/Maidenhead_Locator_System */
 	private String gridSquare(Location location) {
-			Log.v(TAG, "entered gridSquare");
+		Log.v(TAG, "entered gridSquare");
 
-		final String[] field = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R" };
-		final String[] digit = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-		final String[] sub = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x" }; 
-
+		String result = "";
+		
 		// Make longitude and latitude both positive
 		double myLongitude = location.getLongitude() + 180;
 		double myLatitude = location.getLatitude() + 90;
@@ -271,14 +273,22 @@ public class HFBeaconActivity extends Activity {
 		// field consists of two uppercase letters, one letter per ten degrees of latitude or twenty degrees of longitude
 		int longField = (int) myLongitude / 20;
 		int latField = (int) myLatitude / 10;
+		result += maidenheadField[longField];
+		result += maidenheadField[latField];
+		
 		// square consists of two digits, one digit per one degree of latitude or two degrees of longitude
 		int longDigit = (int) (myLongitude - (longField * 20)) / 2;
 		int latDigit = (int) (myLatitude - (latField * 10)) / 1;
+		result += maidenheadDigit[longDigit];
+		result += maidenheadDigit[latDigit];
+		
 		// subsquare consists of two lowercase letters, one letter per 2.5 minutes of latitude or 5 minutes of longitude 
 		int longSub = (int) (myLongitude * 60 / 5) % 24;
 		int latSub = (int) (myLatitude * 60 / 2.5) % 24;
+		result += maidenheadSub[longSub];
+		result += maidenheadSub[latSub];
 		
-		return field[longField] + field[latField] +	digit[longDigit] + digit[latDigit] + sub[longSub] + sub[latSub];
+		return result;
 	}
 	
 	/** Converts raw latitude string value to a more user-friendly format */
@@ -295,7 +305,7 @@ public class HFBeaconActivity extends Activity {
 			result += second;
 		}
 		
-		result += " " + ((latitude[0].startsWith("-")) ? "S" : "N");
+		result += " " + ((latitude[0].startsWith("-")) ? southAbbrev : northAbbrev);
 		
 		return result;
 	}
@@ -313,8 +323,8 @@ public class HFBeaconActivity extends Activity {
 		if (useDMS) {
 			result += second;
 		}
-		
-		result += " " + ((longitude[0].startsWith("-")) ? "W" : "E");
+
+		result += " " + ((longitude[0].startsWith("-")) ? westAbbrev : eastAbbrev);
 		
 		return result;
 	}
@@ -331,12 +341,12 @@ public class HFBeaconActivity extends Activity {
 		longitudeValue.setText(ReadableLongitude);
 		
 		// update beacon ranges and bearings
-		pastBearing.setText(bearings[pastBeacon]);
-		pastRange.setText(ranges[pastBeacon]);
-		presentBearing.setText(bearings[presentBeacon]);
-		presentRange.setText(ranges[presentBeacon]);
-		futureBearing.setText(bearings[futureBeacon]);
-		futureRange.setText(ranges[futureBeacon]);		
+		pastBearing.setText(bearings[pastBeacon] + "\u00B0");
+		pastRange.setText(ranges[pastBeacon] + " km");
+		presentBearing.setText(bearings[presentBeacon] + "\u00B0");
+		presentRange.setText(ranges[presentBeacon] + " km");
+		futureBearing.setText(bearings[futureBeacon] + "\u00B0");
+		futureRange.setText(ranges[futureBeacon] + " km");		
 	}
 
 	/** Sets past, present, and future beacons based on current band and time */
@@ -346,18 +356,19 @@ public class HFBeaconActivity extends Activity {
 		// display past, present and future values
 		pastCallsign.setText(callsigns[pastBeacon]);
 		pastRegion.setText(regions[pastBeacon]);
-		pastBearing.setText(bearings[pastBeacon]);
-		pastRange.setText(ranges[pastBeacon]);
+		pastBearing.setText(bearings[pastBeacon] + "\u00B0");
+		pastRange.setText(ranges[pastBeacon] + " km");
 		presentCallsign.setText(callsigns[presentBeacon]);
 		presentRegion.setText(regions[presentBeacon]);
-		presentBearing.setText(bearings[presentBeacon]);
-		presentRange.setText(ranges[presentBeacon]);
+		presentBearing.setText(bearings[presentBeacon] + "\u00B0");
+		presentRange.setText(ranges[presentBeacon] + " km");
 		futureCallsign.setText(callsigns[futureBeacon]);
 		futureRegion.setText(regions[futureBeacon]);
-		futureBearing.setText(bearings[futureBeacon]);
-		futureRange.setText(ranges[futureBeacon]);
+		futureBearing.setText(bearings[futureBeacon] + "\u00B0");
+		futureRange.setText(ranges[futureBeacon] + " km");
 		
 		// update offset value here
+		// milliseconds are milliseconds
 		offsetValue.setText((( offset < 0 ) ? "" : "+") + offset + " ms");
 	}
 
@@ -431,20 +442,24 @@ public class HFBeaconActivity extends Activity {
 		numBeacons = callsigns.length;
 		bearings = new CharSequence[numBeacons];
 		ranges = new CharSequence[numBeacons];
+		northAbbrev = res.getString(R.string.northAbbrev);
+		southAbbrev = res.getString(R.string.southAbbrev);
+		eastAbbrev = res.getString(R.string.eastAbbrev);
+		westAbbrev = res.getString(R.string.westAbbrev);
+		maidenheadField = res.getTextArray(R.array.maidenheadField);
+		maidenheadDigit = res.getTextArray(R.array.maidenheadDigit);
+		maidenheadSub = res.getTextArray(R.array.maidenheadSub);
 
 		// open preferences
-		Log.d(TAG, "opening preferences");
 		app_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		// band may be useful for spinner
 		band = app_preferences.getInt(HFBeaconService.BAND, 0);
 		offset = app_preferences.getInt(HFBeaconService.OFFSET, 0);
-		Log.i(TAG, "get - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
 		useDMS = app_preferences.getBoolean(USEDMS, true);
 		listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
 			@Override
 			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 					String key) {
-				// TODO Auto-generated method stub
 				if (key.equals(HFBeaconService.OFFSET)) {
 					Log.d(TAG, "received new offset from shared preferences");
 			        // now set the offset value!
@@ -453,13 +468,17 @@ public class HFBeaconActivity extends Activity {
 			        offsetValues.putInt(HFBeaconService.HFBeaconBinder.VALUEKEY, offset);
 			        Parcel offsetData = Parcel.obtain();
 			        offsetData.writeBundle(offsetValues);
-			        try {
-			        	Log.d(TAG, "sending offset transact request to service");
-						mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETOFFSET, offsetData, null, 0);
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+			        if (mBoundService == null) {
+		        		Log.e(TAG, "mBoundService is null, service must have disconnected, possibly orientation");
+		        	} else {
+		        		try {
+		        			Log.d(TAG, "sending offset transact request to service");
+		        			mBoundService.mBinder.transact(HFBeaconService.HFBeaconBinder.SETOFFSET, offsetData, null, 0);
+		        		} catch (RemoteException e) {
+		        			// TODO Auto-generated catch block
+		        			e.printStackTrace();
+		        		}
+		        	}
 				} else if (key.equals(USEDMS)) {
 					Log.d(TAG, "received new UseDMS from shared preferences");
 					useDMS = sharedPreferences.getBoolean(key, true);
@@ -633,7 +652,6 @@ public class HFBeaconActivity extends Activity {
 			;
 		}
 		SharedPreferences.Editor editor = app_preferences.edit();
-		Log.i(TAG, "set - the key is " + HFBeaconService.OFFSET + " and the value is " + offset);
 		editor.putInt(HFBeaconService.BAND, band);
 		editor.putInt(HFBeaconService.OFFSET, offset);
 		editor.putBoolean(USEDMS, useDMS);
@@ -648,7 +666,7 @@ public class HFBeaconActivity extends Activity {
 		
 		// add info
 		menu.add(0, MENU_INFO, 0, R.string.menu_info);
-		menu.add(1, MENU_PREFERENCES, 1, "Preferences");
+		menu.add(1, MENU_PREFERENCES, 1, R.string.menu_preferences);
 		
 		return true;
 	}

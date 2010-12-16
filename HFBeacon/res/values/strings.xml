@@ -14,9 +14,18 @@
 	<string name="callsignLabel">Callsign</string>
 	<string name="regionLabel">Region</string>
 	<string name="bearingLabel">Bearing</string>
-	<string name="rangeLabel">Range (km)</string>
+	<string name="rangeLabel">Range</string>
 	<string name="offsetLabel">Offset</string>
+	<string name="northAbbrev">N</string>
+	<string name="southAbbrev">S</string>
+	<string name="eastAbbrev">E</string>
+	<string name="westAbbrev">W</string>
 	<string name="menu_info">Info</string>
+	<string name="menu_preferences">Preferences</string>
+	<string name="positionPreferenceLabel">Position Format</string>
+	<string name="useDMSLabel">Include seconds?</string>
+	<string name="offsetPreferenceLabel">Local Offset</string>
+	<string name="manualOffsetLabel">Manual Offset</string>
 	<string name="about_title">About</string>
 	<string name="about_body">"by Jack Twilley -- mathuin@gmail.com\n\nNew!  Maidenhead locator system support has been added.  The current grid square is displayed with the latitude and longitude.\n\nHFBeacon is a simple application which informs the user which HF propagation beacon is transmitting at the present time.  Beacon information was collected from <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.\n\nHFBeacon is open source software released under the MIT License.\n"</string>
 	<string name="about_dismiss_button">OK</string>

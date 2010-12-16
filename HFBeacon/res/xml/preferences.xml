@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-	<PreferenceCategory android:title="Position Format">
+	<PreferenceCategory android:title="@+string/positionPreferenceLabel"> 
 		<CheckBoxPreference
 			android:key="UseDMS"
-			android:title="Use DMS?" />
+			android:title="@+string/useDMSLabel" />
 	</PreferenceCategory>
-	<PreferenceCategory android:title="Manual Offset">
+	<PreferenceCategory android:title="@+string/offsetLabel">
        <org.twilley.android.hfbeacon.HFBeaconSeekBarPreference  
             android:key="Offset"
             android:defaultValue="0"
-            android:title="Offset (ms)" />               
+            android:title="@+string/manualOffsetLabel" />               
     </PreferenceCategory>
 </PreferenceScreen>

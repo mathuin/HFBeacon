@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/activityLinearLayoutStyle">
+	<LinearLayout android:id="@+id/topRow" style="@style/tophalfLinearLayoutStyle">
+		<LinearLayout android:id="@+id/bandWidth" style="@style/bandclocklocLinearLayoutStyle">
+			<TextView android:id="@+id/bandLabel" style="@style/labelTextViewStyle" android:text="@string/bandLabel"/>
+		    <Spinner android:id="@+id/bandSpinner" style="@style/SpinnerStyle"/>
+		    <TextView android:id="@+id/offsetLabel" style="@style/labelTextViewStyle" android:text="@string/offsetLabel"/>
+		    <TextView android:id="@+id/offsetValue" style="@style/valueTextViewStyle"/>
+		</LinearLayout>
+		<LinearLayout android:id="@+id/clockmaidenheadWidth" style="@style/bandclocklocLinearLayoutStyle">
+			<LinearLayout android:id="@+id/clockWidth" style="@style/bandclocklocLinearLayoutStyle">
+				<TextView android:id="@+id/clockLabel" style="@style/labelTextViewStyle" android:text="@string/clockLabel"/>
+				<DigitalClock android:id="@+id/clockClock" style="@style/DigitalClockStyle"/>
+			</LinearLayout>
+			<LinearLayout android:id="@+id/maidenheadWidth" style="@style/bandclocklocLinearLayoutStyle">
+				<TextView android:id="@+id/maidenheadLabel" style="@style/labelTextViewStyle" android:text="@string/maidenheadLabel"/>
+				<TextView android:id="@+id/maidenheadValue" style="@style/valueTextViewStyle"/>
+			</LinearLayout>
+		</LinearLayout>
+		<LinearLayout android:id="@+id/locationWidth" style="@style/bandclocklocLinearLayoutStyle">
+<!--			<TextView android:id="@+id/locationLabel" style="@style/labelTextViewStyle" android:text="@string/locationLabel"/>-->
+			<LinearLayout android:id="@+id/latitudeWidth" style="@style/bandclocklocLinearLayoutStyle">
+				<TextView android:id="@+id/latitudeLabel" style="@style/labelTextViewStyle" android:text="@string/latitudeLabel"/>
+				<TextView android:id="@+id/latitudeValue" style="@style/valueTextViewStyle"/>
+			</LinearLayout>
+			<LinearLayout android:id="@+id/longitudeWidth" style="@style/bandclocklocLinearLayoutStyle">
+				<TextView android:id="@+id/longitudeLabel" style="@style/labelTextViewStyle" android:text="@string/longitudeLabel"/>
+				<TextView android:id="@+id/longitudeValue" style="@style/valueTextViewStyle"/>
+			</LinearLayout>
+		</LinearLayout>
+	</LinearLayout>
+	<LinearLayout android:id="@+id/beaconWidth" style="@style/bottomhalfLinearLayoutStyle">
+		<LinearLayout android:id="@+id/labelBeacon" style="@style/beaconLinearLayoutStyle">
+			<TextView android:id="@+id/labelLabel" style="@style/labelTextViewStyle"/>
+			<TextView android:id="@+id/callsignLabel" style="@style/labelTextViewStyle" android:text="@string/callsignLabel"/>
+			<TextView android:id="@+id/regionLabel" style="@style/labelTextViewStyle" android:text="@string/regionLabel"/>
+			<TextView android:id="@+id/bearingLabel" style="@style/labelTextViewStyle" android:text="@string/bearingLabel"/>
+			<TextView android:id="@+id/rangeLabel" style="@style/labelTextViewStyle" android:text="@string/rangeLabel"/>
+		</LinearLayout>
+		<LinearLayout android:id="@+id/pastBeacon" style="@style/beaconLinearLayoutStyle">
+			<TextView android:id="@+id/pastLabel" style="@style/labelTextViewStyle" android:text="@string/pastLabel"/>
+			<TextView android:id="@+id/pastCallsign" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/pastRegion" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/pastBearing" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/pastRange" style="@style/valueTextViewStyle"/>
+		</LinearLayout>
+		<LinearLayout android:id="@+id/presentBeacon" style="@style/beaconLinearLayoutStyle">
+			<TextView android:id="@+id/presentLabel" style="@style/labelTextViewStyle" android:text="@string/presentLabel"/>
+			<TextView android:id="@+id/presentCallsign" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/presentRegion" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/presentBearing" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/presentRange" style="@style/valueTextViewStyle"/>
+		</LinearLayout>
+		<LinearLayout android:id="@+id/futureBeacon" style="@style/beaconLinearLayoutStyle">
+			<TextView android:id="@+id/futureLabel" style="@style/labelTextViewStyle" android:text="@string/futureLabel"/>
+			<TextView android:id="@+id/futureCallsign" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/futureRegion" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/futureBearing" style="@style/valueTextViewStyle"/>
+			<TextView android:id="@+id/futureRange" style="@style/valueTextViewStyle"/>
+		</LinearLayout>
+	</LinearLayout>
+</LinearLayout>

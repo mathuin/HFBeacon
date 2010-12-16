@@ -88,4 +88,62 @@
 		<item>-76:57</item>
 		<item>-66:51</item>
 	</string-array>
+	<string-array name="maidenheadField">
+		<item>A</item>
+		<item>B</item>
+		<item>C</item>
+		<item>D</item>
+		<item>E</item>
+		<item>F</item>
+		<item>G</item>
+		<item>H</item>
+		<item>I</item>
+		<item>J</item>
+		<item>K</item>
+		<item>L</item>
+		<item>M</item>
+		<item>N</item>
+		<item>O</item>
+		<item>P</item>
+		<item>Q</item>
+		<item>R</item>
+	</string-array>
+	<string-array name="maidenheadDigit">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>4</item>
+		<item>5</item>
+		<item>6</item>
+		<item>7</item>
+		<item>8</item>
+		<item>9</item>
+	</string-array>
+	<string-array name="maidenheadSub">
+		<item>a</item>
+		<item>b</item>
+		<item>c</item>
+		<item>d</item>
+		<item>e</item>
+		<item>f</item>
+		<item>g</item>
+		<item>h</item>
+		<item>i</item>
+		<item>j</item>
+		<item>k</item>
+		<item>l</item>
+		<item>m</item>
+		<item>n</item>
+		<item>o</item>
+		<item>p</item>
+		<item>q</item>
+		<item>r</item>
+		<item>s</item>
+		<item>t</item>
+		<item>u</item>
+		<item>v</item>
+		<item>w</item>
+		<item>x</item> 
+	</string-array>
 </resources>
