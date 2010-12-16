@@ -295,7 +295,7 @@ public class HFBeaconActivity extends Activity {
 	private String readableLatitude(Location location) {
 		Log.v(TAG, "entered readableLatitude");
 		
-		String[] latitude = Location.convert(location.getLatitude(), Location.FORMAT_SECONDS).split(":|\\.");
+		String[] latitude = Location.convert(location.getLatitude(), Location.FORMAT_SECONDS).split(":|\\.|,");
 		String degree = latitude[0].replaceFirst("-", "") + '\u00B0';
 		String minute = latitude[1] + '\'';
 		String second = latitude[2] + "\" ";
@@ -314,7 +314,7 @@ public class HFBeaconActivity extends Activity {
 	private String readableLongitude(Location location) {
 		Log.v(TAG, "entered readableLongitude");
 		
-		String[] longitude = Location.convert(location.getLongitude(), Location.FORMAT_SECONDS).split(":|\\.");
+		String[] longitude = Location.convert(location.getLongitude(), Location.FORMAT_SECONDS).split(":|\\.|,");
 		String degree = longitude[0].replaceFirst("-", "") + '\u00B0';
 		String minute = longitude[1] + '\'';
 		String second = longitude[2] + "\" ";

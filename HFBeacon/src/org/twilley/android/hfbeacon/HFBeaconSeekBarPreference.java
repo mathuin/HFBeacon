@@ -19,7 +19,7 @@ import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class HFBeaconSeekBarPreference extends Preference implements OnSeekBarChangeListener {
-	public static int realMaximum = 15000;
+	public static int realMaximum = 30000;
 	public static int realMinimum = -realMaximum;
 	public static int realRange = realMaximum - realMinimum;
 	public static int realInterval = 250;

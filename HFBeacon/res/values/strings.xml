@@ -27,7 +27,12 @@
 	<string name="offsetPreferenceLabel">Local Offset</string>
 	<string name="manualOffsetLabel">Manual Offset</string>
 	<string name="about_title">About</string>
-	<string name="about_body">"by Jack Twilley -- mathuin@gmail.com\n\nNew!  Maidenhead locator system support has been added.  The current grid square is displayed with the latitude and longitude.\n\nHFBeacon is a simple application which informs the user which HF propagation beacon is transmitting at the present time.  Beacon information was collected from <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.\n\nHFBeacon is open source software released under the MIT License.\n"</string>
+	<string name="about_body">"by Jack Twilley -- mathuin@gmail.com\n
+New features in 2.0 include local offset and position formatting preferences.\n
+There is now a Facebook page for HFBeacon so please visit the page and leave feedback on how you use HFBeacon!\n
+Next on the feature list is localization: volunteers are needed for all languages -- especially Spanish, French and German.  Thanks again!\n
+HFBeacon is a simple application which informs the user which HF propagation beacon is transmitting at the present time.  Beacon information was collected from <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.
+HFBeacon is open source software released under the MIT License.\n"</string>
 	<string name="about_dismiss_button">OK</string>
 	<string name="waiting_title">Waiting For Position</string>
 	<string name="waiting_body">Ranges and bearings will be displayed as soon as the application retrieves your current position.\n\nShould be just a moment!</string>
