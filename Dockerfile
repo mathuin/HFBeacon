@@ -29,8 +29,11 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN echo "debconf shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 RUN echo "debconf shared/accepted-oracle-license-v1-1 seen true" | debconf-set-selections
 
-# Update apt
+# Update apt and install packages
 RUN apt-get update && apt-get install -y \
+    lib32z1 \
+    lib32ncurses5 \
+    lib32bz2-1.0 \
     python-software-properties \
     software-properties-common
 
@@ -55,11 +58,11 @@ RUN mv android-sdk-linux android-sdk
 
 # Install android ndk
 # JMT: disabled as I don't use it
-# RUN wget http://dl.google.com/android/ndk/${NDK_FILE}
-# RUN chmod +x ${NDK_FILE}
-# RUN ./${NDK_FILE}
-# RUN rm ${NDK_FILE}
-# RUN mv android-ndk-r${NDK_VER} android-ndk
+RUN wget http://dl.google.com/android/ndk/${NDK_FILE}
+RUN chmod +x ${NDK_FILE}
+RUN ./${NDK_FILE}
+RUN rm ${NDK_FILE}
+RUN mv android-ndk-r${NDK_VER} android-ndk
 
 # Install apache ant
 RUN wget http://archive.apache.org/dist/ant/binaries/${ANT_FILE}
@@ -79,3 +82,14 @@ ENV PATH $PATH:$ANT_HOME/bin
 
 # Export JAVA_HOME variable
 ENV JAVA_HOME /usr/lib/jvm/java-${JDK_VER}-oracle
+
+# Install proper version of Android target.
+# JMT: note that android-3 is no longer supported, android-8 is lowest
+RUN echo "y" | android update sdk --no-ui --filter platform-tools,android-8,build-tools,sysimg-8
+
+# Application source directory
+RUN mkdir -p /app/src /app/gen
+WORKDIR /app
+COPY build-hfbeacon.py /app/build-hfbeacon.py
+RUN chmod +x /app/build-hfbeacon.py
+CMD [ "python", "/app/build-hfbeacon.py", "help" ]
