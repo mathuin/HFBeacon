@@ -15,7 +15,8 @@ if len(argv) == 2:
     cmd = argv[1]
     if cmd in ['debug', 'release']:
         chdir("/app/src")
-        execlp("ant", "-Dsdk.dir=/usr/local/android-sdk", "-Dkey.store=/keys/AndroidAppsKey.keystore", "-Dkey.alias=AndroidApps", cmd)
+        # "-Dsdk.dir=/usr/local/android-sdk",
+        execlp("ant", "-Dgen.dir=/app/gen", "-Dkey.store=/keys/AndroidAppsKey.keystore", "-Dkey.alias=twilley.org release key", cmd)
     else:
         usage()
 else:

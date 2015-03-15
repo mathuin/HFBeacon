@@ -5,7 +5,9 @@ FROM phusion/baseimage:0.9.16
 MAINTAINER Jack Twilley <mathuin@gmail.com>
 
 # App versions
+ENV ANDROID_TARGET 8
 ENV ANT_VER 1.9.4
+ENV BT_VER 22.0.0
 ENV JDK_VER 8
 ENV NDK_VER 10d
 ENV SDK_VER 24.0.2
@@ -31,9 +33,10 @@ RUN echo "debconf shared/accepted-oracle-license-v1-1 seen true" | debconf-set-s
 
 # Update apt and install packages
 RUN apt-get update && apt-get install -y \
-    lib32z1 \
-    lib32ncurses5 \
     lib32bz2-1.0 \
+    lib32ncurses5 \
+    lib32stdc++6 \
+    lib32z1 \
     python-software-properties \
     software-properties-common
 
@@ -74,7 +77,7 @@ RUN rm ${ANT_FILE}
 ENV ANDROID_HOME /usr/local/android-sdk
 ENV PATH $PATH:$ANDROID_HOME/tools
 ENV PATH $PATH:$ANDROID_HOME/platform-tools
-ENV PATH $PATH:$ANDROID_HOME/build-tools/${SDK_VER}
+ENV PATH $PATH:$ANDROID_HOME/build-tools/${BT_VER}
 
 # Add ant to PATH
 ENV ANT_HOME /usr/local/apache-ant
@@ -85,10 +88,10 @@ ENV JAVA_HOME /usr/lib/jvm/java-${JDK_VER}-oracle
 
 # Install proper version of Android target.
 # JMT: note that android-3 is no longer supported, android-8 is lowest
-RUN echo "y" | android update sdk --no-ui --filter platform-tools,android-8,build-tools,sysimg-8
+RUN echo "y" | android update sdk --no-ui --filter platform-tools,android-8,build-tools-${BT_VER}
 
 # Application source directory
-RUN mkdir -p /app/src /app/gen
+RUN mkdir -p /app/src /app/bin /app/gen
 WORKDIR /app
 COPY build-hfbeacon.py /app/build-hfbeacon.py
 RUN chmod +x /app/build-hfbeacon.py
