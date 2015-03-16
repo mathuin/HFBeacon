@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+	<string name="app_name">HFBeacon</string>
+	<string name="bandLabel">Bande</string>
+	<string name="clockLabel">Horloge</string>
+	<string name="locationLabel">Position</string>
+	<string name="latitudeLabel">Latitude</string>
+	<string name="longitudeLabel">Longitude</string>
+	<string name="maidenheadLabel">Grille QTH</string>
+	<string name="pastLabel">Passé</string>
+	<string name="presentLabel">Présent</string>
+	<string name="futureLabel">Futur</string>
+	<string name="callsignLabel">Indicatif</string>
+	<string name="regionLabel">Région</string>
+	<string name="bearingLabel">Orientement</string>
+	<string name="rangeLabel">Distance</string>
+	<string name="offsetLabel">Ajustement</string>
+	<string name="northAbbrev">N</string>
+	<string name="southAbbrev">S</string>
+	<string name="eastAbbrev">E</string>
+	<string name="westAbbrev">O</string>
+	<string name="menu_info">Info</string>
+	<string name="menu_preferences">Réglages</string>
+	<string name="positionPreferenceLabel">Format de Position</string>
+	<string name="useDMSLabel">Inclure secondes?</string>
+	<string name="offsetPreferenceLabel">Ajustement Local</string>
+	<string name="manualOffsetLabel">Ajustement Manuel</string>
+	<string name="about_title">À propos de</string>
+	<string name="about_body">"par Jack Twilley -- mathuin@gmail.com\n
+La nouvelle fonctionnalité de 2.1 est la localisation -- espagnol, français, et italien sont désormais inclus. Toujours à la recherche pour l'allemand! Un grand merci à Martino Barbon IU3EDM pour les traductions!\n
+Il y a maintenant une page Facebook pour HFBeacon donc s'il vous plaît visitez la page et laisser des commentaires sur la façon dont vous utilisez HFBeacon!\n
+HFBeacon est une application simple qui informe l'utilisateur quel radiophare de propagation HF balise émet à l'heure actuelle. Les informations sur les radiophares ont été recueillies à partir de <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.
+HFBeacon est un logiciel open source distribué sous licence MIT.\n"</string>
+	<string name="about_dismiss_button">OK</string>
+	<string name="waiting_title">Attendant la position</string>
+	<string name="waiting_body">Distances et orientements seront affichés dès que l\'application récupère votre position actuelle.\n\nUn moment s\'il vous plaît!</string>
+	<string name="waiting_dismiss_button">OK</string>
+	<string name="locationdisabled_title">Position désactivée</string>
+	<string name="locationdisabled_body">Pour utiliser HFBeacon, vous devez d\'abord activer une source de localisation dans Préférences. Voulez-vous accéder à Réglages et l\'activer maintenant?</string>
+	<string name="locationdisabled_positive_button">OK</string>
+	<string name="locationdisabled_negative_button">Annuler</string>
+</resources>
