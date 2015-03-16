@@ -87,11 +87,10 @@ ENV PATH $PATH:$ANT_HOME/bin
 ENV JAVA_HOME /usr/lib/jvm/java-${JDK_VER}-oracle
 
 # Install proper version of Android target.
-# JMT: note that android-3 is no longer supported, android-8 is lowest
-RUN echo "y" | android update sdk --no-ui --filter platform-tools,android-8,build-tools-${BT_VER}
+RUN echo "y" | android update sdk --no-ui --filter platform-tools,android-${ANDROID_TARGET},build-tools-${BT_VER}
 
 # Application source directory
-RUN mkdir -p /app/src /app/bin /app/gen
+RUN mkdir -p /app/src /app/test /app/bin /app/gen
 WORKDIR /app
 COPY build-hfbeacon.py /app/build-hfbeacon.py
 RUN chmod +x /app/build-hfbeacon.py
