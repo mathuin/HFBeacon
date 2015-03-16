@@ -28,9 +28,8 @@
 	<string name="manualOffsetLabel">Scostamento Manuale</string>
 	<string name="about_title">Info su</string>
 	<string name="about_body">"di Jack Twilley -- mathuin@gmail.com\n
-Le nuove funzioni nella versione 2.0 includono lo scostamento locale e le preferenze di formato posizione.\n
+La nuova funzionalità per la 2.1 è la localizzazione -- spagnolo, francese e italiano sono ora inclusi. Ancora alla ricerca di tedesco! Molte grazie a Martino Barbon IU3EDM per le traduzioni!\n
 Ora c'è una pagina Facebook di HFBeacon che potete visitare per lasciare un feedback su come usate HFBeacon!\n
-Il prossimo punto sulla lista delle funzioni è la localizzazione: cerchiamo volontari per tutte le lingue, specialmente il tedesco. Grazie ancora!\n
 HFBeacon è una semplice applicazione che informa l'utente su quale beacon di propagazione HF sta trasmettendo in quel momento. Le informazioni sui beacon sono state prese da <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.
 HFBeacon è un software open source rilasciato sotto licenza MIT.\n"</string>
 	<string name="about_dismiss_button">OK</string>

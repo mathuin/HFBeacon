@@ -28,9 +28,8 @@
 	<string name="manualOffsetLabel">Ajustement Manuel</string>
 	<string name="about_title">À propos de</string>
 	<string name="about_body">"par Jack Twilley -- mathuin@gmail.com\n
-Les nouvelles fonctionnalités de la version 2.0 comprennent l'ajustement locale et les réglages de formatage de position.\n
-Il ya maintenant une page Facebook pour HFBeacon donc s'il vous plaît visitez la page et laisser des commentaires sur la façon dont vous utilisez HFBeacon!\n
-Suivant sur la liste des fonctionnalités il y a la localisation: nous avons besoin de volontaires pour toutes les langues - en particulier l'allemand.  Merci encore!\n
+La nouvelle fonctionnalité de 2.1 est la localisation -- espagnol, français, et italien sont désormais inclus. Toujours à la recherche pour l'allemand! Un grand merci à Martino Barbon IU3EDM pour les traductions!\n
+Il y a maintenant une page Facebook pour HFBeacon donc s'il vous plaît visitez la page et laisser des commentaires sur la façon dont vous utilisez HFBeacon!\n
 HFBeacon est une application simple qui informe l'utilisateur quel radiophare de propagation HF balise émet à l'heure actuelle. Les informations sur les radiophares ont été recueillies à partir de <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.
 HFBeacon est un logiciel open source distribué sous licence MIT.\n"</string>
 	<string name="about_dismiss_button">OK</string>

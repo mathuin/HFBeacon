@@ -28,9 +28,9 @@
 	<string name="manualOffsetLabel">Desplazamiento Manual</string>
 	<string name="about_title">Informaciones</string>
 	<string name="about_body">"por Jack Twilley -- mathuin@gmail.com\n
-Nuevas funcionalidades en 2.0 incluyen desplazamiento local y preferencias de formato de posición.\n
+La nueva característica de 2.1 es la localización - español, francés e italiano se incluyen ahora. Sigues buscando Alemán! Muchas gracias a Martino Barbon IU3EDM para las traducciones!\n
 Hay una página Facebook sobre HFBeacon entonces por favor visita la página y deja un comentario sobre como utilizas HFBeacon!\n
-En la lista de cosas que hacer hay la internacionalización: necesitamos voluntarios para todos los idiomas, especialmente Alemán. Gracias!\n
+En la lista de cosas que hacer hay la internacionalización: necesitamos voluntarios para todos los idiomas, especialmente Gracias!\n
 HFBeacon es una aplicación sencilla que informa el usuario sobre cual radiofaro está transmitiendo en algun momento. Las informaciones sobre los radiofaros han sido recogidas de <a href="http://www.ncdxf.org/beacons.html">http://www.ncdxf.org/beacons.html</a>.
 HFBeacon es software de código abierto distribuido bajo licencia MIT.\n"</string>
 	<string name="about_dismiss_button">OK</string>
