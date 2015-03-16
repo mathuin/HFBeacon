@@ -1,0 +1,4 @@
+# .gitignore
+*~
+HFBeacon/bin
+HFBeacon/gen
