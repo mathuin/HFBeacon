@@ -7,6 +7,6 @@
 
     <uses-library android:name="android.test.runner" />
     </application>
-    <uses-sdk android:minSdkVersion="5" />
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8"/>
     <instrumentation android:targetPackage="org.twilley.android.hfbeacon" android:name="android.test.InstrumentationTestRunner" />
 </manifest> 
