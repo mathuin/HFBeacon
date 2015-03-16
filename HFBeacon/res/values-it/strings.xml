@@ -35,7 +35,7 @@ HFBeacon è una semplice applicazione che informa l'utente su quale beacon di pr
 HFBeacon è un software open source rilasciato sotto licenza MIT.\n"</string>
 	<string name="about_dismiss_button">OK</string>
 	<string name="waiting_title">In attesa della posizione</string>
-	<string name="waiting_body">Distanza e Orientamento verranno mostrate non appena l'applicazione recupera la tua posizione attuale.\n\nCi vorrà un momento!</string>
+	<string name="waiting_body">Distanza e Orientamento verranno mostrate non appena l\'applicazione recupera la tua posizione attuale.\n\nCi vorrà un momento!</string>
 	<string name="waiting_dismiss_button">OK</string>
 	<string name="locationdisabled_title">Posizione Disabilitata</string>
 	<string name="locationdisabled_body">Per usare HFBeacon, devi prima attivare una sorgente di Posizione nelle Impostazioni. Andare alle Impostazioni e attivarla ora?</string>

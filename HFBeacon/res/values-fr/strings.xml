@@ -35,10 +35,10 @@ HFBeacon est une application simple qui informe l'utilisateur quel radiophare de
 HFBeacon est un logiciel open source distribué sous licence MIT.\n"</string>
 	<string name="about_dismiss_button">OK</string>
 	<string name="waiting_title">Attendant la position</string>
-	<string name="waiting_body">Distances et orientements seront affichés dès que l'application récupère votre position actuelle.\n\nUn moment s'il vous plaît!</string>
+	<string name="waiting_body">Distances et orientements seront affichés dès que l\'application récupère votre position actuelle.\n\nUn moment s\'il vous plaît!</string>
 	<string name="waiting_dismiss_button">OK</string>
 	<string name="locationdisabled_title">Position désactivée</string>
-	<string name="locationdisabled_body">Pour utiliser HFBeacon, vous devez d'abord activer une source de localisation dans Préférences. Voulez-vous accéder à Réglages et l'activer maintenant?</string>
+	<string name="locationdisabled_body">Pour utiliser HFBeacon, vous devez d\'abord activer une source de localisation dans Préférences. Voulez-vous accéder à Réglages et l\'activer maintenant?</string>
 	<string name="locationdisabled_positive_button">OK</string>
 	<string name="locationdisabled_negative_button">Annuler</string>
 </resources>
