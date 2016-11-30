@@ -2,8 +2,6 @@
 
 FROM phusion/baseimage:0.9.16
 
-MAINTAINER Jack Twilley <mathuin@gmail.com>
-
 # App versions
 ENV ANDROID_TARGET 8
 ENV ANT_VER 1.9.4
